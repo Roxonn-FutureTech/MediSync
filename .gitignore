@@ -24,3 +24,6 @@ node_modules/
 # Build outputs
 dist/
 build/
+
+# venv
+venv_py310/
