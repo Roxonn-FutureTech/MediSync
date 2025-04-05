@@ -14,6 +14,7 @@ class TestAPI(unittest.TestCase):
         with app.app_context():
             db.session.remove()
             db.drop_all()
+            db.engine.dispose()
 
     def test_register_hospital(self):
         response = self.client.post('/api/hospitals',
