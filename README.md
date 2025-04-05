@@ -1,4 +1,4 @@
-# Emergency Medical Portal
+## Emergency Medical Portal
 
 An open-source project to improve emergency medical response and inter-hospital coordination.
 
