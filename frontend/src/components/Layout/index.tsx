@@ -219,7 +219,7 @@ const Layout = () => {
   const [scrolled, setScrolled] = useState(false);
   const [alerts, setAlerts] = useState(demoEmergencyAlerts);
   const breakpoint = isMobile ? 'xs' : muiTheme.breakpoints.up('md') ? 'md' : 'sm';
-  
+
   useEffect(() => {
     if (isMobile) {
       setDrawerOpen(false);
@@ -266,7 +266,7 @@ const Layout = () => {
   const handleProfileMenuClose = () => {
     setAnchorEl(null);
   };
-  
+
   const handleNotificationMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setNotificationsAnchorEl(event.currentTarget);
   };
@@ -288,7 +288,7 @@ const Layout = () => {
   const handleSettingsMenuClose = () => {
     setSettingsAnchorEl(null);
   };
-  
+
   const handleAlertClose = (id: string) => {
     setAlerts(alerts.filter(alert => alert.id !== id));
   };
@@ -350,7 +350,7 @@ const Layout = () => {
           zIndex: muiTheme.zIndex.drawer + 1,
           backdropFilter: 'blur(10px)',
           backgroundColor: alpha(
-            muiTheme.palette.background.default,
+            muiTheme.palette.background.default, 
             scrolled ? (mode === 'light' ? 0.85 : 0.92) : (mode === 'light' ? 0.7 : 0.85)
           ),
           boxShadow: scrolled ? muiTheme.shadows[3] : 'none',
@@ -367,7 +367,7 @@ const Layout = () => {
               alignItems: 'center',
             }}
           >
-            <IconButton
+            <IconButton 
               color="inherit"
               aria-label="open drawer"
               edge="start"
@@ -477,8 +477,8 @@ const Layout = () => {
                 }}
               >
                 <AddIcon sx={{ fontSize: { xs: 18, sm: 22 } }} />
-              </IconButton>
-            </Tooltip>
+            </IconButton>
+          </Tooltip>
             
             {/* Notifications */}
             <Tooltip title="Notifications">
@@ -495,7 +495,7 @@ const Layout = () => {
                 <Badge 
                   badgeContent={notificationCount} 
                   color="error"
-                  sx={{
+          sx={{ 
                     '& .MuiBadge-badge': {
                       fontSize: { xs: '0.65rem', sm: '0.7rem' },
                       height: { xs: 16, sm: 18 },
@@ -505,7 +505,7 @@ const Layout = () => {
                 >
                   <Notifications sx={{ fontSize: { xs: 20, sm: 22 } }} />
                 </Badge>
-              </IconButton>
+            </IconButton>
             </Tooltip>
             
             {/* Theme toggle */}
@@ -533,7 +533,7 @@ const Layout = () => {
                   <IconButton
                     onClick={handleProfileMenuOpen}
                     size="small"
-                    sx={{ 
+                    sx={{
                       p: 0,
                       border: `2px solid ${alpha(muiTheme.palette.primary.main, 0.5)}`,
                       overflow: 'hidden'
@@ -542,7 +542,7 @@ const Layout = () => {
                     <Avatar 
                       alt="User" 
                       src="/user-avatar.png"
-                      sx={{ 
+                      sx={{
                         width: { xs: 32, sm: 36, md: 38 }, 
                         height: { xs: 32, sm: 36, md: 38 },
                       }}
@@ -655,10 +655,10 @@ const Layout = () => {
             >
               View all notifications
             </Button>
-          </Box>
+      </Box>
         )}
       </Menu>
-      
+
       {/* Profile Menu */}
       <Menu
         anchorEl={anchorEl}
