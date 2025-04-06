@@ -1,0 +1,47 @@
+{
+  "short_name": "MediSync",
+  "name": "MediSync - Emergency Medical Response System",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1976d2",
+  "background_color": "#ffffff",
+  "orientation": "portrait",
+  "categories": ["medical", "healthcare", "emergency"],
+  "description": "Emergency medical response and hospital coordination system",
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Emergency Response",
+      "short_name": "Emergencies",
+      "description": "View active emergencies",
+      "url": "/emergencies",
+      "icons": [{ "src": "emergency.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Hospital Status",
+      "short_name": "Hospitals",
+      "description": "Check hospital availability",
+      "url": "/hospitals",
+      "icons": [{ "src": "hospital.png", "sizes": "192x192" }]
+    }
+  ]
+} 

@@ -1,0 +1,38 @@
+name: Emergency Med Portal CI
+
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11' # or whatever version you're using
+
+    - name: Install dependencies
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Tests
+      run: |
+        source venv/bin/activate
+        python -m unittest discover tests
+
+    - name: Run API Server (optional for testing)
+      if: false  # Change to true if you want to deploy/run the server
+      run: |
+        source venv/bin/activate
+        python src/api/app.py
