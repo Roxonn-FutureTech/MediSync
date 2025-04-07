@@ -62,51 +62,60 @@ A modern, responsive Progressive Web Application (PWA) for emergency medical res
 - **Package Manager**: npm
 - **Code Quality**: ESLint, TypeScript
 
-## Getting Started
+## Build Instructions
 
 ### Prerequisites
-
 - Node.js (v16 or higher)
-- npm (v7 or higher)
+- npm (v8 or higher)
 
 ### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/MediSync.git
-   cd MediSync/frontend
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Build for production:
-   ```bash
-   npm run build
-   ```
+```bash
+# Install dependencies
+npm install
+```
 
 ### Development
+```bash
+# Start development server
+npm run dev
+```
 
-The project follows a modular architecture with the following structure:
+### Production Build
+```bash
+# Create production build
+npm run build
+
+# The build artifacts will be stored in the `dist/` directory
+```
+
+### Preview Production Build
+```bash
+# Preview the production build locally
+npm run preview
+```
+
+### Additional Scripts
+```bash
+# Run linting
+npm run lint
+
+# Generate icons
+npm run generate-icons
+```
+
+## Project Structure
 
 ```
 frontend/
 ├── src/
-│   ├── components/     # Reusable UI components
-│   ├── pages/         # Main application pages
-│   ├── routes/        # Routing configuration
-│   ├── styles/        # Global styles and themes
-│   ├── assets/        # Static assets
+│   ├── components/     # Reusable components
+│   ├── pages/         # Page components
+│   ├── contexts/      # React contexts
+│   ├── hooks/         # Custom hooks
+│   ├── theme/         # Theme configuration
 │   └── utils/         # Utility functions
-├── public/            # Public assets
-└── vite.config.ts     # Vite configuration
+├── public/           # Static assets
+└── dist/            # Build output (generated)
 ```
 
 ## Progressive Web App Features
@@ -157,11 +166,9 @@ frontend/
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Create a feature branch
+2. Make your changes
+3. Submit a pull request
 
 ## License
 
@@ -170,3 +177,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 Project Link: [https://github.com/yourusername/MediSync](https://github.com/yourusername/MediSync)
+
+## Environment Variables
+Create a `.env` file in the root directory with the following variables:
+```env
+VITE_API_URL=your_api_url
+```
