@@ -1,964 +1,896 @@
+import { useState } from 'react';
 import {
-  Box,
   Typography,
+  Box,
+  Grid,
+  Stack,
+  Button,
+  IconButton,
   Card,
   CardContent,
-  Grid,
   Avatar,
   Chip,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
-  Button,
   TextField,
   InputAdornment,
+  Menu,
+  MenuItem,
+  Tabs,
+  Tab,
+  Divider,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  ListItemSecondaryAction,
+  Tooltip,
+  Badge,
   FormControl,
   InputLabel,
   Select,
-  MenuItem,
-  IconButton,
-  Tab,
-  Tabs,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Stack,
-  Badge,
-  LinearProgress,
-  Alert,
-  Tooltip,
-  CircularProgress,
-  SpeedDial,
-  SpeedDialAction,
-  SpeedDialIcon,
-  Skeleton,
-  SwipeableDrawer,
+  useTheme,
+  alpha,
   ToggleButton,
   ToggleButtonGroup,
   Fade,
+  Container,
+  FormHelperText,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper
 } from '@mui/material';
 import {
+  FilterList as FilterIcon,
   Search as SearchIcon,
-  LocationOn as LocationIcon,
-  Timer,
-  LocalHospital,
-  Phone,
-  Email,
   Add as AddIcon,
+  Person as PersonIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  FilterList as FilterIcon,
-  Refresh as RefreshIcon,
-  Assessment as AssessmentIcon,
-  CalendarMonth as CalendarIcon,
-  Star as StarIcon,
-  Speed as SpeedIcon,
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
-  ViewModule as GridViewIcon,
-  ViewList as ListViewIcon,
-  Notifications as NotificationsIcon,
-  Message as MessageIcon,
-  Schedule as ScheduleIcon,
-  BarChart as StatsIcon,
-  PersonAdd as PersonAddIcon,
-  FilterAlt as FilterAltIcon,
+  SupervisorAccount as ManagerIcon,
+  LocalHospital as DoctorIcon,
+  MedicalServices as NurseIcon,
+  Psychology as TherapistIcon,
+  Engineering as TechnicianIcon,
+  Healing as StaffIcon,
+  EventNote as ScheduleIcon,
+  Assessment as ReportIcon,
+  Mail as EmailIcon,
+  Phone as PhoneIcon,
+  Verified as VerifiedIcon,
+  WorkOutline as RoleIcon,
+  Sort as SortIcon,
+  ViewList as ListView,
+  ViewModule as GridView,
 } from '@mui/icons-material';
-import { useState, useEffect } from 'react';
-import { alpha } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 
-interface Performance {
-  responseTime: number;
-  casesHandled: number;
-  successRate: number;
-  rating: number;
-  lastMonth: {
-    total: number;
-    successful: number;
-    critical: number;
-  };
-}
-
-interface Schedule {
-  current: string;
-  next: string;
-  totalHours: number;
-  overtimeHours: number;
-  upcomingShifts: {
-    date: string;
-    time: string;
-    hospital: string;
-  }[];
-}
-
+// Simulated data structure
 interface StaffMember {
-  id: number;
+  id: string;
   name: string;
   role: string;
-  status: 'on-duty' | 'off-duty' | 'on-call';
-  location: string;
-  hospital: string;
-  phone: string;
-  email: string;
+  department: string;
+  image: string;
+  status: string;
   shift: string;
-  specialty?: string;
-  avatar: string;
-  nextShift?: string;
-  experience: string;
+  specialization: string;
+  email: string;
+  phone: string;
+  joiningDate: string;
+  employeeId: string;
   certifications: string[];
-  performance: Performance;
-  schedule: Schedule;
-  lastActive: string;
+  hospital: string;
 }
 
-// Enhanced mock data
-const staffMembers: StaffMember[] = [
+// Mock data for staff members
+const mockStaff: StaffMember[] = [
   {
-    id: 1,
+    id: '1',
     name: 'Dr. Sarah Johnson',
-    role: 'Emergency Physician',
-    status: 'on-duty',
-    location: 'ER Wing',
-    hospital: 'Central Hospital',
-    phone: '(555) 123-4567',
+    role: 'Doctor',
+    department: 'Cardiology',
+    image: 'https://randomuser.me/api/portraits/women/1.jpg',
+    status: 'active',
+    shift: 'Morning',
+    specialization: 'Cardiologist',
     email: 'sarah.johnson@medisync.com',
-    shift: '7:00 AM - 7:00 PM',
-    specialty: 'Trauma Care',
-    avatar: 'SJ',
-    experience: '10 years',
-    certifications: ['ABEM', 'ACLS', 'ATLS'],
-    performance: {
-      responseTime: 4.2,
-      casesHandled: 127,
-      successRate: 95.5,
-      rating: 4.8,
-      lastMonth: {
-        total: 45,
-        successful: 43,
-        critical: 12,
-      },
-    },
-    schedule: {
-      current: 'Day Shift',
-      next: 'Tomorrow, 7:00 AM',
-      totalHours: 160,
-      overtimeHours: 12,
-      upcomingShifts: [
-        {
-          date: '2024-03-16',
-          time: '7:00 AM - 7:00 PM',
-          hospital: 'Central Hospital',
-        },
-        {
-          date: '2024-03-17',
-          time: '7:00 AM - 7:00 PM',
-          hospital: 'Central Hospital',
-        },
-      ],
-    },
-    lastActive: '2 minutes ago',
+    phone: '+1 (555) 123-4567',
+    joiningDate: '2020-05-15',
+    employeeId: 'EMP-001',
+    certifications: ['MBBS', 'MD', 'FACC'],
+    hospital: 'Central Hospital'
   },
-  // Add more staff members with similar detailed data
+  {
+    id: '2',
+    name: 'James Wilson',
+    role: 'Nurse',
+    department: 'Emergency',
+    image: 'https://randomuser.me/api/portraits/men/2.jpg',
+    status: 'active',
+    shift: 'Evening',
+    specialization: 'Emergency Medicine',
+    email: 'james.wilson@medisync.com',
+    phone: '+1 (555) 234-5678',
+    joiningDate: '2021-02-10',
+    employeeId: 'EMP-002',
+    certifications: ['RN', 'BLS', 'ACLS'],
+    hospital: 'Central Hospital'
+  },
+  {
+    id: '3',
+    name: 'Dr. Emily Carter',
+    role: 'Doctor',
+    department: 'Neurology',
+    image: 'https://randomuser.me/api/portraits/women/3.jpg',
+    status: 'on-leave',
+    shift: 'Morning',
+    specialization: 'Neurologist',
+    email: 'emily.carter@medisync.com',
+    phone: '+1 (555) 345-6789',
+    joiningDate: '2019-08-20',
+    employeeId: 'EMP-003',
+    certifications: ['MBBS', 'MD', 'ABPN'],
+    hospital: 'Central Hospital'
+  },
 ];
 
-// Add these styles at the top level
-const CARD_TRANSITION = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-const HOVER_ELEVATION = 8;
+// Available roles for staff members
+const staffRoles = [
+  'Doctor',
+  'Nurse',
+  'Technician',
+  'Therapist',
+  'Manager',
+  'Administrative Staff'
+];
 
-export default function Staff() {
-  const [staff, setStaff] = useState<StaffMember[]>(staffMembers);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterRole, setFilterRole] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [currentTab, setCurrentTab] = useState(0);
-  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
-  const [showSpeedDial, setShowSpeedDial] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<StaffMember | null>(null);
-  const [showQuickActions, setShowQuickActions] = useState(false);
+// Department options
+const departments = [
+  'Cardiology',
+  'Neurology',
+  'Pediatrics',
+  'Emergency',
+  'Oncology',
+  'Radiology',
+  'Orthopedics',
+  'Administration',
+  'IT Support',
+  'General Medicine'
+];
 
-  const handleRefresh = async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
-  };
+// Hospitals
+const hospitals = [
+  'Central Hospital',
+  'North Medical Center',
+  'West General Hospital',
+  'East County Medical',
+  'South Memorial Hospital'
+];
 
-  useEffect(() => {
-    const interval = setInterval(handleRefresh, 30000);
-    return () => clearInterval(interval);
-  }, []);
+// Shift options
+const shifts = [
+  'Morning',
+  'Evening',
+  'Night',
+  'Rotating',
+  'Weekend'
+];
 
-  const filteredStaff = staff.filter(member => {
-    const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.role.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === 'all' || member.role === filterRole;
-    const matchesStatus = filterStatus === 'all' || member.status === filterStatus;
-    return matchesSearch && matchesRole && matchesStatus;
+// Status options
+const statusOptions = [
+  'active',
+  'inactive',
+  'on-leave',
+  'training'
+];
+
+interface AddStaffDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onAddStaff: (staff: StaffMember) => void;
+}
+
+const AddStaffDialog = ({ open, onClose, onAddStaff }: AddStaffDialogProps) => {
+  const theme = useTheme();
+  const [formData, setFormData] = useState<Partial<StaffMember>>({
+    name: '',
+    role: '',
+    department: '',
+    status: 'active',
+    shift: '',
+    specialization: '',
+    email: '',
+    phone: '',
+    hospital: '',
+    certifications: []
   });
+  
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [certField, setCertField] = useState('');
 
-  const getStatusColor = (status: StaffMember['status']) => {
-    switch (status) {
-      case 'on-duty':
-        return 'success';
-      case 'off-duty':
-        return 'error';
-      case 'on-call':
-        return 'warning';
-      default:
-        return 'default';
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.name) newErrors.name = 'Name is required';
+    if (!formData.role) newErrors.role = 'Role is required';
+    if (!formData.department) newErrors.department = 'Department is required';
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    if (!formData.phone) newErrors.phone = 'Phone number is required';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+    const { name, value } = e.target;
+    
+    if (!name) return;
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error when field is corrected
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
     }
   };
 
-  // Add animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+  const handleAddCertification = () => {
+    if (certField.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        certifications: [...(prev.certifications || []), certField.trim()]
+      }));
+      setCertField('');
     }
   };
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1
+  const handleRemoveCertification = (cert: string) => {
+    setFormData(prev => ({
+      ...prev,
+      certifications: (prev.certifications || []).filter(c => c !== cert)
+    }));
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      // Generate a new staff member with necessary fields
+      const newStaff: StaffMember = {
+        ...formData as StaffMember,
+        id: `${Date.now()}`,
+        image: `https://randomuser.me/api/portraits/${Math.random() > 0.5 ? 'women' : 'men'}/${Math.floor(Math.random() * 70) + 1}.jpg`,
+        joiningDate: new Date().toISOString().split('T')[0],
+        employeeId: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
+      };
+      
+      onAddStaff(newStaff);
+      onClose();
+      
+      // Reset form
+      setFormData({
+        name: '',
+        role: '',
+        department: '',
+        status: 'active',
+        shift: '',
+        specialization: '',
+        email: '',
+        phone: '',
+        hospital: '',
+        certifications: []
+      });
+      setErrors({});
     }
   };
 
   return (
-    <Box 
-      component={motion.div}
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      sx={{ 
-        p: 3,
-        background: theme => `linear-gradient(135deg, 
-          ${alpha(theme.palette.background.default, 0.9)},
-          ${alpha(theme.palette.background.default, 0.7)}),
-          url('/assets/medical-bg-pattern.png')`,
-        backgroundSize: 'cover',
-        minHeight: '100vh',
-        position: 'relative'
+    <Dialog 
+      open={open} 
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 2 }
       }}
     >
-      {/* Header Section */}
-      <Box sx={{ 
-        mb: 4, 
-        display: 'flex', 
-        flexDirection: { xs: 'column', md: 'row' },
-        gap: 2,
-        alignItems: { xs: 'stretch', md: 'center' },
-        justifyContent: 'space-between',
-        backdropFilter: 'blur(10px)',
-        borderRadius: 3,
-        p: 3,
-        bgcolor: theme => alpha(theme.palette.background.paper, 0.8),
-        boxShadow: theme => `0 8px 32px ${alpha(theme.palette.primary.main, 0.1)}`
+      <DialogTitle sx={{ 
+        p: 3, 
+        bgcolor: alpha(theme.palette.primary.main, 0.05),
+        display: 'flex',
+        alignItems: 'center'
       }}>
-        <Box>
-          <Typography 
-            variant="h4" 
-            component={motion.h4}
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            fontWeight="bold" 
-            sx={{
-              background: theme => `linear-gradient(45deg, 
-                ${theme.palette.primary.main}, 
-                ${theme.palette.secondary.main})`,
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              color: 'transparent',
-              textShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              mb: 1
-            }}
-          >
-            Staff Management
-          </Typography>
-          <Typography 
-            variant="body2" 
-            color="text.secondary"
-            component={motion.p}
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            {filteredStaff.length} staff members • {
-              filteredStaff.filter(m => m.status === 'on-duty').length
-            } on duty
-          </Typography>
-        </Box>
-
-        <Stack 
-          direction="row" 
-          spacing={2}
-          component={motion.div}
-          initial={{ x: 20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-        >
-          <ToggleButtonGroup
-            value={viewType}
-            exclusive
-            onChange={(e, value) => value && setViewType(value)}
-            size="small"
-          >
-            <ToggleButton value="grid">
-              <Tooltip title="Grid View">
-                <GridViewIcon fontSize="small" />
-              </Tooltip>
-            </ToggleButton>
-            <ToggleButton value="list">
-              <Tooltip title="List View">
-                <ListViewIcon fontSize="small" />
-              </Tooltip>
-            </ToggleButton>
-          </ToggleButtonGroup>
-
-          <Button
-            variant="outlined"
-            startIcon={<FilterAltIcon />}
-            onClick={() => setShowFilters(true)}
-            sx={{
-              borderRadius: 2,
-              transition: CARD_TRANSITION,
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: 2
-              }
-            }}
-          >
-            Filters
-          </Button>
-
-          <Button
-            variant="contained"
-            startIcon={<PersonAddIcon />}
-            onClick={() => setOpenDialog(true)}
-            sx={{
-              borderRadius: 2,
-              background: theme => `linear-gradient(45deg, 
-                ${theme.palette.primary.main}, 
-                ${theme.palette.secondary.main})`,
-              transition: CARD_TRANSITION,
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: 4
-              }
-            }}
-          >
-            Add Staff
-          </Button>
-        </Stack>
-      </Box>
-
-      {/* Search and Filters */}
-      <Fade in={showFilters}>
-        <Box sx={{ mb: 3 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+        <PersonIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+        <Typography variant="h6" component="div" fontWeight={600}>
+          Add New Staff Member
+        </Typography>
+      </DialogTitle>
+      
+      <DialogContent sx={{ p: 3 }}>
+        <Grid container spacing={3} sx={{ mt: 0 }}>
+          <Grid item xs={12}>
+            <Typography 
+              variant="subtitle1" 
+              fontWeight="medium" 
+              color="primary" 
+              gutterBottom
+            >
+              Basic Information
+            </Typography>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              required
+              label="Full Name"
+              name="name"
+              value={formData.name || ''}
+              onChange={handleInputChange}
+              error={!!errors.name}
+              helperText={errors.name}
+              variant="outlined"
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth error={!!errors.role} required>
+              <InputLabel id="staff-role-label">Role</InputLabel>
+              <Select
+                labelId="staff-role-label"
+                id="role"
+                name="role"
+                value={formData.role || ''}
+                onChange={handleInputChange}
+                label="Role"
+              >
+                {staffRoles.map(role => (
+                  <MenuItem key={role} value={role}>{role}</MenuItem>
+                ))}
+              </Select>
+              {errors.role && <FormHelperText>{errors.role}</FormHelperText>}
+            </FormControl>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth error={!!errors.department} required>
+              <InputLabel id="department-label">Department</InputLabel>
+              <Select
+                labelId="department-label"
+                id="department"
+                name="department"
+                value={formData.department || ''}
+                onChange={handleInputChange}
+                label="Department"
+              >
+                {departments.map(dept => (
+                  <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+                ))}
+              </Select>
+              {errors.department && <FormHelperText>{errors.department}</FormHelperText>}
+            </FormControl>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Specialization"
+              name="specialization"
+              value={formData.specialization || ''}
+              onChange={handleInputChange}
+              variant="outlined"
+            />
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Divider sx={{ my: 1 }} />
+            <Typography 
+              variant="subtitle1" 
+              fontWeight="medium" 
+              color="primary" 
+              gutterBottom
+              sx={{ mt: 2 }}
+            >
+              Contact Information
+            </Typography>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              required
+              label="Email Address"
+              name="email"
+              type="email"
+              value={formData.email || ''}
+              onChange={handleInputChange}
+              error={!!errors.email}
+              helperText={errors.email}
+              variant="outlined"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              required
+              label="Phone Number"
+              name="phone"
+              value={formData.phone || ''}
+              onChange={handleInputChange}
+              error={!!errors.phone}
+              helperText={errors.phone}
+              variant="outlined"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PhoneIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Divider sx={{ my: 1 }} />
+            <Typography 
+              variant="subtitle1" 
+              fontWeight="medium" 
+              color="primary" 
+              gutterBottom
+              sx={{ mt: 2 }}
+            >
+              Employment Details
+            </Typography>
+          </Grid>
+          
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel id="hospital-label">Hospital</InputLabel>
+              <Select
+                labelId="hospital-label"
+                id="hospital"
+                name="hospital"
+                value={formData.hospital || ''}
+                onChange={handleInputChange}
+                label="Hospital"
+              >
+                {hospitals.map(hospital => (
+                  <MenuItem key={hospital} value={hospital}>{hospital}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel id="shift-label">Shift</InputLabel>
+              <Select
+                labelId="shift-label"
+                id="shift"
+                name="shift"
+                value={formData.shift || ''}
+                onChange={handleInputChange}
+                label="Shift"
+              >
+                {shifts.map(shift => (
+                  <MenuItem key={shift} value={shift}>{shift}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel id="status-label">Status</InputLabel>
+              <Select
+                labelId="status-label"
+                id="status"
+                name="status"
+                value={formData.status || 'active'}
+                onChange={handleInputChange}
+                label="Status"
+              >
+                {statusOptions.map(status => (
+                  <MenuItem key={status} value={status}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" gutterBottom>
+              Certifications & Qualifications
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <TextField
                 fullWidth
-                placeholder="Search staff by name, role, or location..."
-                InputProps={{
-                  startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-                  sx: {
-                    borderRadius: 2,
-                    bgcolor: theme => alpha(theme.palette.background.paper, 0.8),
-                    backdropFilter: 'blur(8px)',
-                    transition: CARD_TRANSITION,
-                    '&:hover': {
-                      bgcolor: theme => alpha(theme.palette.background.paper, 0.95),
-                      transform: 'translateY(-2px)',
-                      boxShadow: 2
-                    }
+                label="Add certification"
+                value={certField}
+                onChange={(e) => setCertField(e.target.value)}
+                variant="outlined"
+                size="small"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddCertification();
                   }
                 }}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
               />
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
-                <InputLabel>Role</InputLabel>
-                <Select
-                  value={filterRole}
-                  label="Role"
-                  onChange={(e) => setFilterRole(e.target.value)}
-                  sx={{
-                    borderRadius: 2,
-                    bgcolor: theme => alpha(theme.palette.background.paper, 0.8),
-                    backdropFilter: 'blur(8px)',
-                    transition: CARD_TRANSITION,
-                    '&:hover': {
-                      bgcolor: theme => alpha(theme.palette.background.paper, 0.95),
-                      transform: 'translateY(-2px)',
-                      boxShadow: 2
-                    }
-                  }}
-                >
-                  <MenuItem value="all">All Roles</MenuItem>
-                  <MenuItem value="Emergency Physician">Emergency Physician</MenuItem>
-                  <MenuItem value="Paramedic">Paramedic</MenuItem>
-                  <MenuItem value="Emergency Nurse">Emergency Nurse</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={filterStatus}
-                  label="Status"
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  sx={{
-                    borderRadius: 2,
-                    bgcolor: theme => alpha(theme.palette.background.paper, 0.8),
-                    backdropFilter: 'blur(8px)',
-                    transition: CARD_TRANSITION,
-                    '&:hover': {
-                      bgcolor: theme => alpha(theme.palette.background.paper, 0.95),
-                      transform: 'translateY(-2px)',
-                      boxShadow: 2
-                    }
-                  }}
-                >
-                  <MenuItem value="all">All Status</MenuItem>
-                  <MenuItem value="on-duty">On Duty</MenuItem>
-                  <MenuItem value="off-duty">Off Duty</MenuItem>
-                  <MenuItem value="on-call">On Call</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-        </Box>
-      </Fade>
-
-      {/* Staff Cards Grid/List */}
-      <Box
-        component={motion.div}
-        variants={containerVariants}
-        sx={{ 
-          position: 'relative',
-          minHeight: 400
-        }}
-      >
-        {isLoading ? (
-          <Grid container spacing={2}>
-            {[1, 2, 3, 4].map((i) => (
-              <Grid item xs={12} lg={6} key={i}>
-                <Skeleton 
-                  variant="rectangular" 
-                  height={200} 
-                  sx={{ borderRadius: 2 }}
-                />
-              </Grid>
-            ))}
-          </Grid>
-        ) : (
-          <Grid container spacing={{ xs: 1, sm: 2, md: 3 }}>
-            {filteredStaff.map((member) => (
-              <Grid 
-                item 
-                xs={12} 
-                lg={viewType === 'grid' ? 6 : 12} 
-                key={member.id}
-                component={motion.div}
-                variants={itemVariants}
+              <Button 
+                variant="outlined"
+                onClick={handleAddCertification}
+                sx={{ ml: 1, whiteSpace: 'nowrap' }}
               >
-                <Card
-                  component={motion.div}
-                  whileHover={{ 
-                    y: -8,
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-                    transition: { duration: 0.3 }
-                  }}
-                  sx={{ 
-                    borderRadius: 3,
-                    background: theme => alpha(theme.palette.background.paper, 0.8),
-                    backdropFilter: 'blur(8px)',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                    border: '1px solid',
-                    borderColor: theme => alpha(theme.palette.divider, 0.1),
-                    '&:hover': {
-                      '& .performance-card': {
-                        transform: 'scale(1.02)',
-                      },
-                      '& .quick-actions': {
-                        opacity: 1,
-                        transform: 'translateY(0)',
-                      }
-                    }
-                  }}
-                >
-                  <CardContent sx={{ 
-                    p: { xs: 1.5, sm: 2 },
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}>
-                    {/* Header section */}
-                    <Box sx={{ 
-                      display: 'flex', 
-                      flexDirection: { xs: 'column', sm: 'row' },
-                      alignItems: { xs: 'flex-start', sm: 'center' },
-                      gap: { xs: 1, sm: 1.5 },
-                      mb: 2 
-                    }}>
-                      <Box sx={{ 
-                        display: 'flex',
-                        width: '100%',
-                        alignItems: 'center',
-                        gap: 1.5,
-                        justifyContent: 'space-between'
-                      }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <Badge
-                            overlap="circular"
-                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                            variant="dot"
-                            color={getStatusColor(member.status)}
-                          >
-                            <Avatar
-                              sx={{
-                                width: { xs: 40, sm: 48 },
-                                height: { xs: 40, sm: 48 },
-                                bgcolor: 'primary.main',
-                                fontSize: { xs: '1rem', sm: '1.2rem' },
-                              }}
-                            >
-                              {member.avatar}
-                            </Avatar>
-                          </Badge>
-                          <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography variant="subtitle1" fontWeight="bold" noWrap>
-                              {member.name}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" noWrap>
-                              {member.role}
-                            </Typography>
-                            <Chip
-                              size="small"
-                              label={member.status.replace('-', ' ').toUpperCase()}
-                              color={getStatusColor(member.status)}
-                              sx={{ mt: 0.5 }}
-                            />
-                          </Box>
-                        </Box>
-                        <IconButton size="small" onClick={() => setSelectedStaff(member)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </Box>
-
-                    {/* Performance and Schedule section */}
-                    <Grid container spacing={{ xs: 1, sm: 1.5 }} sx={{ mb: 'auto' }}>
-                      <Grid item xs={12} sm={6}>
-                        <Card 
-                          variant="outlined" 
-                          className="performance-card"
-                          sx={{ 
-                            borderRadius: 2,
-                            height: '100%',
-                            transition: CARD_TRANSITION,
-                            background: theme => `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.secondary.main, 0.05)})`,
-                            backdropFilter: 'blur(4px)'
-                          }}
-                        >
-                          <CardContent sx={{ 
-                            p: { xs: 1, sm: 1.5 }, 
-                            '&:last-child': { pb: { xs: 1, sm: 1.5 } },
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column'
-                          }}>
-                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              Performance Metrics
-                            </Typography>
-                            <Box sx={{ flex: 1 }}>
-                              <Box sx={{ mb: 1.5 }}>
-                                <Box sx={{ 
-                                  display: 'flex', 
-                                  justifyContent: 'space-between', 
-                                  mb: 0.5, 
-                                  alignItems: 'center',
-                                  flexWrap: 'wrap',
-                                  gap: 0.5
-                                }}>
-                                  <Typography variant="caption" component="span" noWrap>
-                                    Response Time
-                                  </Typography>
-                                  <Typography variant="caption" component="span" fontWeight="bold">
-                                    {member.performance.responseTime} min
-                                  </Typography>
-                                </Box>
-                                <LinearProgress
-                                  variant="determinate"
-                                  value={Math.min((member.performance.responseTime / 10) * 100, 100)}
-                                  sx={{
-                                    height: 4,
-                                    borderRadius: 2,
-                                    bgcolor: theme => alpha(theme.palette.primary.main, 0.1),
-                                    '& .MuiLinearProgress-bar': {
-                                      borderRadius: 2,
-                                      background: theme => `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`
-                                    }
-                                  }}
-                                />
-                              </Box>
-                              <Box sx={{ mb: 1.5 }}>
-                                <Box sx={{ 
-                                  display: 'flex', 
-                                  justifyContent: 'space-between', 
-                                  mb: 0.5, 
-                                  alignItems: 'center',
-                                  flexWrap: 'wrap',
-                                  gap: 0.5
-                                }}>
-                                  <Typography variant="caption" component="span" noWrap>
-                                    Success Rate
-                                  </Typography>
-                                  <Typography variant="caption" component="span" fontWeight="bold">
-                                    {member.performance.successRate}%
-                                  </Typography>
-                                </Box>
-                                <LinearProgress
-                                  variant="determinate"
-                                  value={member.performance.successRate}
-                                  sx={{
-                                    height: 4,
-                                    borderRadius: 2
-                                  }}
-                                />
-                              </Box>
-                            </Box>
-                            <Stack 
-                              direction="row" 
-                              spacing={0.5} 
-                              flexWrap="wrap" 
-                              useFlexGap 
-                              sx={{ gap: 0.5, mt: 'auto' }}
-                            >
-                              <Chip
-                                size="small"
-                                icon={<AssessmentIcon sx={{ fontSize: '1rem' }} />}
-                                label={`${member.performance.casesHandled} cases`}
-                                sx={{ 
-                                  height: 24, 
-                                  '& .MuiChip-label': { 
-                                    px: 1, 
-                                    fontSize: '0.75rem',
-                                    whiteSpace: 'nowrap'
-                                  } 
-                                }}
-                              />
-                              <Chip
-                                size="small"
-                                icon={<StarIcon sx={{ fontSize: '1rem' }} />}
-                                label={`${member.performance.rating} rating`}
-                                sx={{ 
-                                  height: 24, 
-                                  '& .MuiChip-label': { 
-                                    px: 1, 
-                                    fontSize: '0.75rem',
-                                    whiteSpace: 'nowrap'
-                                  } 
-                                }}
-                              />
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <Card 
-                          variant="outlined"
-                          className="schedule-card"
-                          sx={{ 
-                            borderRadius: 2,
-                            height: '100%',
-                            transition: CARD_TRANSITION,
-                            background: theme => `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.secondary.main, 0.05)})`,
-                            backdropFilter: 'blur(4px)'
-                          }}
-                        >
-                          <CardContent sx={{ 
-                            p: { xs: 1, sm: 1.5 }, 
-                            '&:last-child': { pb: { xs: 1, sm: 1.5 } },
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column'
-                          }}>
-                            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                              Schedule
-                            </Typography>
-                            <List dense disablePadding sx={{ flex: 1 }}>
-                              <ListItem dense sx={{ px: 0.5, py: 0.25 }}>
-                                <ListItemIcon sx={{ minWidth: 28 }}>
-                                  <Timer sx={{ fontSize: '1rem' }} />
-                                </ListItemIcon>
-                                <ListItemText
-                                  primary={
-                                    <Typography variant="caption" component="span" noWrap>
-                                      {member.schedule.current}
-                                    </Typography>
-                                  }
-                                  secondary={
-                                    <Typography variant="caption" component="span" color="text.secondary">
-                                      Current
-                                    </Typography>
-                                  }
-                                  sx={{ m: 0 }}
-                                />
-                              </ListItem>
-                              <ListItem dense sx={{ px: 0.5, py: 0.25 }}>
-                                <ListItemIcon sx={{ minWidth: 28 }}>
-                                  <CalendarIcon sx={{ fontSize: '1rem' }} />
-                                </ListItemIcon>
-                                <ListItemText
-                                  primary={
-                                    <Typography variant="caption" component="span" noWrap>
-                                      {member.schedule.next}
-                                    </Typography>
-                                  }
-                                  secondary={
-                                    <Typography variant="caption" component="span" color="text.secondary">
-                                      Next
-                                    </Typography>
-                                  }
-                                  sx={{ m: 0 }}
-                                />
-                              </ListItem>
-                            </List>
-                            <Typography 
-                              variant="caption" 
-                              color="text.secondary" 
-                              sx={{ mt: 'auto', display: 'block' }}
-                              noWrap
-                            >
-                              {member.schedule.totalHours}h ({member.schedule.overtimeHours}h OT)
-                            </Typography>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    </Grid>
-
-                    {/* Certifications section */}
-                    <Box sx={{ mt: 1.5 }}>
-                      <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                        Certifications
-                      </Typography>
-                      <Stack 
-                        direction="row" 
-                        spacing={0.5} 
-                        flexWrap="wrap" 
-                        useFlexGap 
-                        sx={{ gap: 0.5 }}
-                      >
-                        {member.certifications.map((cert, index) => (
-                          <Chip
-                            key={index}
-                            label={cert}
-                            size="small"
-                            sx={{
-                              height: 20,
-                              '& .MuiChip-label': { 
-                                px: 1, 
-                                fontSize: '0.75rem',
-                                whiteSpace: 'nowrap'
-                              },
-                              borderRadius: 1,
-                              transition: CARD_TRANSITION,
-                              '&:hover': {
-                                transform: 'translateY(-1px)',
-                                boxShadow: 1,
-                                bgcolor: theme => alpha(theme.palette.primary.main, 0.1)
-                              }
-                            }}
-                          />
-                        ))}
-                      </Stack>
-                    </Box>
-
-                    <Divider sx={{ my: 1.5 }} />
-
-                    {/* Footer section */}
-                    <Box sx={{ 
-                      display: 'flex', 
-                      flexDirection: { xs: 'column', sm: 'row' },
-                      justifyContent: 'space-between', 
-                      alignItems: { xs: 'flex-start', sm: 'center' },
-                      gap: { xs: 0.5, sm: 0 }
-                    }}>
-                      <Box sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 0.5,
-                        width: { xs: '100%', sm: 'auto' }
-                      }}>
-                        <LocationIcon sx={{ fontSize: '1rem' }} color="action" />
-                        <Typography variant="caption" component="span" noWrap>
-                          {member.location} • {member.hospital}
-                        </Typography>
-                      </Box>
-                      <Typography 
-                        variant="caption" 
-                        component="span" 
-                        color="text.secondary"
-                        sx={{ width: { xs: '100%', sm: 'auto' } }}
-                        noWrap
-                      >
-                        {member.lastActive}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-                
-                {/* Quick Actions Overlay */}
-                <Box
-                  className="quick-actions"
-                  sx={{
-                    position: 'absolute',
-                    top: 16,
-                    right: 16,
-                    display: 'flex',
-                    gap: 1,
-                    opacity: 0,
-                    transform: 'translateY(-10px)',
-                    transition: 'all 0.3s ease-in-out'
-                  }}
-                >
-                  <Tooltip title="Send Message">
-                    <IconButton
-                      size="small"
-                      sx={{
-                        bgcolor: 'background.paper',
-                        boxShadow: 2,
-                        '&:hover': { transform: 'scale(1.1)' }
-                      }}
-                    >
-                      <MessageIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="View Schedule">
-                    <IconButton
-                      size="small"
-                      sx={{
-                        bgcolor: 'background.paper',
-                        boxShadow: 2,
-                        '&:hover': { transform: 'scale(1.1)' }
-                      }}
-                    >
-                      <ScheduleIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="View Stats">
-                    <IconButton
-                      size="small"
-                      sx={{
-                        bgcolor: 'background.paper',
-                        boxShadow: 2,
-                        '&:hover': { transform: 'scale(1.1)' }
-                      }}
-                    >
-                      <StatsIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Grid>
-            ))}
+                Add
+              </Button>
+            </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {(formData.certifications || []).map((cert, index) => (
+                <Chip
+                  key={index}
+                  label={cert}
+                  onDelete={() => handleRemoveCertification(cert)}
+                  variant="outlined"
+                />
+              ))}
+              {(formData.certifications || []).length === 0 && (
+                <Typography variant="body2" color="text.secondary">
+                  No certifications added
+                </Typography>
+              )}
+            </Box>
           </Grid>
-        )}
+        </Grid>
+      </DialogContent>
+      
+      <DialogActions sx={{ px: 3, py: 2, bgcolor: alpha(theme.palette.primary.main, 0.03) }}>
+        <Button onClick={onClose} color="inherit">
+          Cancel
+        </Button>
+        <Button 
+          onClick={handleSubmit}
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+        >
+          Add Staff Member
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+const Staff = () => {
+  const theme = useTheme();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>(mockStaff);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [selectedRole, setSelectedRole] = useState<string>('all');
+  const [displayMode, setDisplayMode] = useState<'grid' | 'list'>('grid');
+
+  const handleAddStaff = (newStaff: StaffMember) => {
+    setStaffMembers(prev => [...prev, newStaff]);
+  };
+
+  const filteredStaff = staffMembers.filter(staff => {
+    // Apply search
+    const searchMatches = staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          staff.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          staff.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          staff.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Apply department filter
+    const departmentMatches = selectedDepartment === 'all' || staff.department === selectedDepartment;
+    
+    // Apply role filter
+    const roleMatches = selectedRole === 'all' || staff.role === selectedRole;
+    
+    return searchMatches && departmentMatches && roleMatches;
+  });
+
+  return (
+    <Container maxWidth="xl" sx={{ height: '100%' }}>
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={8} sx={{ pl: { xs: 5, md: 3 }, pt: 3 }}>
+          <Typography variant="h4" sx={{ mb: 1, fontWeight: 700 }}>
+            Staff Management
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            Manage medical and administrative staff
+          </Typography>
+        </Grid>
+        <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, alignItems: 'center' }}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setShowAddDialog(true)}
+            sx={{ 
+              ml: 2,
+              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+              boxShadow: `0 4px 10px 0 ${alpha(theme.palette.primary.main, 0.25)}`,
+            }}
+          >
+            Add Staff Member
+          </Button>
+        </Grid>
+      </Grid>
+
+      {/* Search and Filters */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={8}>
+          <TextField
+            fullWidth
+            placeholder="Search staff by name, role, department..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            variant="outlined"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: theme.palette.text.secondary }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                backgroundColor: alpha(theme.palette.common.white, 0.9),
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.common.white, 1),
+                },
+                '&.Mui-focused': {
+                  backgroundColor: alpha(theme.palette.common.white, 1),
+                },
+                '& .MuiInputAdornment-root': {
+                  marginRight: 1,
+                },
+              },
+            }}
+          />
+        </Grid>
+        <Grid item xs={12} md={2}>
+          <FormControl fullWidth>
+            <InputLabel id="department-filter-label">Department</InputLabel>
+            <Select
+              labelId="department-filter-label"
+              id="department-filter"
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              label="Department"
+            >
+              <MenuItem value="all">All Departments</MenuItem>
+              {departments.map(dept => (
+                <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} md={2}>
+          <FormControl fullWidth>
+            <InputLabel id="role-filter-label">Role</InputLabel>
+            <Select
+              labelId="role-filter-label"
+              id="role-filter"
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              label="Role"
+            >
+              <MenuItem value="all">All Roles</MenuItem>
+              {staffRoles.map(role => (
+                <MenuItem key={role} value={role}>{role}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
+
+      {/* Display Mode Toggle */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6">
+          {filteredStaff.length} Staff Member{filteredStaff.length !== 1 ? 's' : ''}
+        </Typography>
+        <ToggleButtonGroup
+          value={displayMode}
+          exclusive
+          onChange={(e, value) => value && setDisplayMode(value)}
+          aria-label="display mode"
+          size="small"
+        >
+          <ToggleButton value="grid" aria-label="grid view">
+            <GridView />
+          </ToggleButton>
+          <ToggleButton value="list" aria-label="list view">
+            <ListView />
+          </ToggleButton>
+        </ToggleButtonGroup>
       </Box>
 
-      {/* Speed Dial */}
-      <SpeedDial
-        ariaLabel="Staff Management Actions"
-        sx={{ position: 'fixed', bottom: 16, right: 16 }}
-        icon={<SpeedDialIcon />}
-        onClose={() => setShowSpeedDial(false)}
-        onOpen={() => setShowSpeedDial(true)}
-        open={showSpeedDial}
-      >
-        <SpeedDialAction
-          icon={<PersonAddIcon />}
-          tooltipTitle="Add Staff"
-          onClick={() => setOpenDialog(true)}
-        />
-        <SpeedDialAction
-          icon={<NotificationsIcon />}
-          tooltipTitle="Send Notification"
-          onClick={() => {/* Handle notification */}}
-        />
-        <SpeedDialAction
-          icon={<ScheduleIcon />}
-          tooltipTitle="Schedule Management"
-          onClick={() => {/* Handle schedule */}}
-        />
-        <SpeedDialAction
-          icon={<StatsIcon />}
-          tooltipTitle="View Analytics"
-          onClick={() => {/* Handle analytics */}}
-        />
-      </SpeedDial>
+      {/* Staff Grid/List */}
+      {displayMode === 'grid' ? (
+        <Grid container spacing={3}>
+          {filteredStaff.map((staff) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={staff.id}>
+              <Card sx={{ 
+                borderRadius: 2,
+                boxShadow: `0 4px 12px ${alpha(theme.palette.common.black, 0.05)}`,
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-5px)',
+                  boxShadow: `0 12px 20px ${alpha(theme.palette.common.black, 0.1)}`,
+                }
+              }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Avatar
+                      src={staff.image}
+                      alt={staff.name}
+                      sx={{ width: 100, height: 100, mb: 2 }}
+                    />
+                    <Typography variant="h6" align="center" gutterBottom>
+                      {staff.name}
+                    </Typography>
+                    <Chip 
+                      label={staff.role} 
+                      color="primary"
+                      variant="outlined"
+                      size="small"
+                      icon={
+                        staff.role === 'Doctor' ? <DoctorIcon /> :
+                        staff.role === 'Nurse' ? <NurseIcon /> :
+                        staff.role === 'Technician' ? <TechnicianIcon /> :
+                        staff.role === 'Therapist' ? <TherapistIcon /> :
+                        staff.role === 'Manager' ? <ManagerIcon /> :
+                        <StaffIcon />
+                      }
+                      sx={{ mb: 1 }}
+                    />
+                    <Typography variant="body2" color="text.secondary" align="center">
+                      {staff.department}
+                    </Typography>
+                  </Box>
+                  
+                  <Divider sx={{ my: 2 }} />
+                  
+                  <Stack spacing={1}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <EmailIcon fontSize="small" sx={{ color: 'text.secondary', mr: 1 }} />
+                      <Typography variant="body2" noWrap>
+                        {staff.email}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <PhoneIcon fontSize="small" sx={{ color: 'text.secondary', mr: 1 }} />
+                      <Typography variant="body2">{staff.phone}</Typography>
+                    </Box>
+                  </Stack>
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                    <Chip 
+                      label={staff.shift} 
+                      size="small"
+                      variant="outlined"
+                    />
+                    <Chip 
+                      label={staff.status.charAt(0).toUpperCase() + staff.status.slice(1)} 
+                      color={
+                        staff.status === 'active' ? 'success' :
+                        staff.status === 'inactive' ? 'error' :
+                        'warning'
+                      }
+                      size="small"
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
+        <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Staff Member</TableCell>
+                <TableCell>Department</TableCell>
+                <TableCell>Role</TableCell>
+                <TableCell>Contact</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredStaff.map((staff) => (
+                <TableRow key={staff.id}>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Avatar src={staff.image} alt={staff.name} sx={{ mr: 2 }} />
+                      <Box>
+                        <Typography variant="body1">{staff.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          ID: {staff.employeeId}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </TableCell>
+                  <TableCell>{staff.department}</TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={staff.role} 
+                      size="small"
+                      icon={
+                        staff.role === 'Doctor' ? <DoctorIcon /> :
+                        staff.role === 'Nurse' ? <NurseIcon /> :
+                        staff.role === 'Technician' ? <TechnicianIcon /> :
+                        staff.role === 'Therapist' ? <TherapistIcon /> :
+                        staff.role === 'Manager' ? <ManagerIcon /> :
+                        <StaffIcon />
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">{staff.email}</Typography>
+                    <Typography variant="body2">{staff.phone}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={staff.status.charAt(0).toUpperCase() + staff.status.slice(1)} 
+                      color={
+                        staff.status === 'active' ? 'success' :
+                        staff.status === 'inactive' ? 'error' :
+                        'warning'
+                      }
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <IconButton size="small">
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" color="error">
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
-      {/* Filters Drawer */}
-      <SwipeableDrawer
-        anchor="right"
-        open={showFilters}
-        onClose={() => setShowFilters(false)}
-        onOpen={() => setShowFilters(true)}
-        PaperProps={{
-          sx: {
-            width: 320,
-            borderRadius: '16px 0 0 16px',
-            bgcolor: theme => alpha(theme.palette.background.paper, 0.9),
-            backdropFilter: 'blur(10px)',
-          }
-        }}
-      >
-        {/* Add filter content */}
-      </SwipeableDrawer>
-
-      <Dialog 
-        open={openDialog} 
-        onClose={() => setOpenDialog(false)} 
-        maxWidth="md" 
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            background: theme => alpha(theme.palette.background.paper, 0.9),
-            backdropFilter: 'blur(10px)'
-          }
-        }}
-      >
-        <DialogTitle>
-          {selectedStaff ? 'Edit Staff Member' : 'Add New Staff Member'}
-        </DialogTitle>
-        <DialogContent>
-          {/* Add form fields for staff data */}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button variant="contained" color="primary">
-            {selectedStaff ? 'Save Changes' : 'Add Staff'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+      {/* Add Staff Dialog */}
+      <AddStaffDialog
+        open={showAddDialog}
+        onClose={() => setShowAddDialog(false)}
+        onAddStaff={handleAddStaff}
+      />
+    </Container>
   );
-}
+};
+
+export default Staff;

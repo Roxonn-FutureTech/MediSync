@@ -1,24 +1,43 @@
-import { Suspense } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import { routes } from './routes';
-import LoadingIndicator from './components/common/LoadingIndicator';
+import { ColorModeProvider } from './context/ColorModeContext';
+import { CssBaseline } from '@mui/material';
+import { AuthProvider } from './context/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
-const router = createBrowserRouter(routes, {
-  future: {
-    v7_startTransition: true,
-    v7_relativeSplatPath: true,
-  },
-});
-
-const App = () => {
+// Create a root-level component that wraps the application with AuthProvider
+const AppRoot = () => {
   return (
-    <ThemeProvider>
-      <Suspense fallback={<LoadingIndicator />}>
-        <RouterProvider router={router} fallbackElement={<LoadingIndicator />} />
-      </Suspense>
-    </ThemeProvider>
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
   );
 };
+
+function App() {
+  // Create router configuration with AppRoot as the root element
+  const router = createBrowserRouter([
+    {
+      path: '/',
+      element: <AppRoot />,
+      errorElement: <ErrorBoundary />,
+      children: routes,
+    },
+  ], {
+    future: {
+      v7_relativeSplatPath: true,
+      v7_startTransition: true,
+      v7_fetcherPersist: true,
+      v7_normalizeFormMethod: true
+    }
+  });
+
+  return (
+    <ColorModeProvider>
+      <CssBaseline />
+      <RouterProvider router={router} />
+    </ColorModeProvider>
+  );
+}
 
 export default App;
