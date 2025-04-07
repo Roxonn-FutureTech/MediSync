@@ -99,11 +99,7 @@ def health_check():
 @limiter.limit("10 per minute")
 def register_hospital():
     schema = HospitalSchema()
-    try:
-        data = schema.load(request.json)
-    except ValidationError as err:
-        return jsonify(err.messages), 400
-
+    data = schema.load(request.json)
     new_hospital = Hospital(
         name=data['name'],
         address=data['address'],
