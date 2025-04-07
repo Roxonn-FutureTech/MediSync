@@ -5,24 +5,23 @@
   padding: 0;
 }
 
-html, body {
-  height: 100%;
+html, body, #root {
   margin: 0;
   padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: Inter, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
 }
 
 body {
   line-height: 1.5;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
 #root {
-  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -103,4 +102,236 @@ p, h1, h2, h3, h4, h5, h6 {
 .fade-exit-active {
   opacity: 0;
   transition: opacity 200ms ease-out;
+}
+
+/* Fix z-index stacking for components */
+.MuiDrawer-root {
+  z-index: 1200;
+}
+
+.MuiDrawer-paper {
+  z-index: 1200;
+}
+
+.MuiAppBar-root {
+  z-index: 1100;
+}
+
+/* Reset stacking order for the main content */
+main {
+  z-index: 1;
+}
+
+/* Fix styling for root */
+#root {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Ensure elements within the main content are visible but don't conflict with drawer */
+main > div {
+  position: relative;
+  z-index: 1;
+}
+
+/* Fix scrolling behavior */
+.MuiBox-root {
+  box-sizing: border-box;
+}
+
+main .MuiBox-root[style*="overflow: auto"] {
+  height: 100%;
+}
+
+/* Explicitly set contrast for all components with background */
+.MuiCard-root, .MuiPaper-root {
+  background-color: var(--mui-palette-background-paper);
+}
+
+/* Fix for dark mode */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212;
+    color: #ffffff;
+  }
+}
+
+/* Add custom styles for Leaflet map */
+.modern-map-container {
+  border-radius: 8px;
+}
+
+/* Make popups more modern */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  padding: 0;
+}
+
+.leaflet-popup-tip {
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom marker styles */
+.custom-marker-icon {
+  transition: transform 0.2s ease-out;
+}
+
+.custom-marker-icon:hover {
+  transform: scale(1.1);
+  z-index: 1000 !important;
+}
+
+/* Tile transition animations */
+.leaflet-tile-loaded {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Custom zoom controls (if needed) */
+.leaflet-control-zoom a {
+  border-radius: 6px !important;
+  margin-bottom: 5px;
+  transition: all 0.2s;
+}
+
+/* Improve tooltip design */
+.leaflet-tooltip {
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+  font-weight: 500;
+}
+
+/* Emergency Protocols Mobile Optimizations */
+@media (max-width: 600px) {
+  .emergency-protocol-checklist-item {
+    padding: 12px 8px !important;
+  }
+  
+  .emergency-protocol-header {
+    font-size: 1.25rem !important;
+  }
+  
+  .emergency-protocol-description {
+    font-size: 0.875rem !important;
+  }
+}
+
+/* Accessibility Enhancements for Emergency UI */
+.emergency-critical-item {
+  position: relative;
+}
+
+.emergency-critical-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: #dc2626;
+  border-radius: 4px 0 0 4px;
+}
+
+.emergency-protocol-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.emergency-protocol-card:hover, 
+.emergency-protocol-card:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* High contrast mode for emergency items */
+@media (prefers-contrast: more) {
+  .emergency-critical-marker {
+    color: #000000 !important;
+    background-color: #ffdd00 !important;
+    outline: 2px solid #000000 !important;
+  }
+  
+  .emergency-protocol-button {
+    border: 2px solid currentColor !important;
+  }
+  
+  .emergency-status-badge {
+    border: 2px solid #000000 !important;
+  }
+}
+
+/* Reduce motion for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .emergency-protocol-card,
+  .emergency-action-button {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* Haptic feedback indicator */
+.emergency-haptic-indicator {
+  position: relative;
+  overflow: hidden;
+}
+
+.emergency-haptic-indicator::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: inherit;
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.emergency-haptic-indicator:active::after {
+  transform: scale(1);
+  opacity: 1;
+  transition: 0s;
+}
+
+/* Floating action button enhancements */
+.emergency-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.14), 0 1px 18px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.emergency-fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2), 0 3px 20px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 600px) {
+  .emergency-fab {
+    bottom: 16px;
+    right: 16px;
+  }
 }

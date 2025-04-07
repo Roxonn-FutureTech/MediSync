@@ -1,631 +1,561 @@
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
   Grid,
   Paper,
   Card,
-  CardContent,
-  IconButton,
-  Button,
-  Divider,
   Avatar,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  ListItemSecondary,
   Chip,
   LinearProgress,
-  Stack,
-  Badge,
-  Tooltip,
-  CircularProgress,
-  Menu,
-  MenuItem,
-  Tab,
-  Tabs,
+  Container,
   useTheme,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Divider,
   alpha,
-  SpeedDial,
-  SpeedDialIcon,
-  SpeedDialAction,
-  AvatarGroup,
+  IconButton,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Button,
+  DialogActions,
 } from '@mui/material';
 import {
-  LocalHospital as HospitalIcon,
-  DirectionsCar as AmbulanceIcon,
-  Warning as EmergencyIcon,
   People as StaffIcon,
-  AccessTime as TimeIcon,
-  TrendingUp as TrendingUpIcon,
-  Notifications as NotificationsIcon,
-  CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
-  ArrowUpward as ArrowUpIcon,
-  ArrowDownward as ArrowDownIcon,
-  Refresh as RefreshIcon,
-  LocationOn as LocationIcon,
-  LocalShipping as TransferIcon,
-  Speed as SpeedIcon,
-  Assessment as AssessmentIcon,
-  Bed as BedIcon,
   LocalHotel as BedsIcon,
   MedicalServices as MedicalIcon,
-  LocalPharmacy as PharmacyIcon,
-  Timeline as TimelineIcon,
-  Add as AddIcon,
-  Settings as SettingsIcon,
-  DirectionsRun,
+  AccessTime as TimeIcon,
+  Notifications as NotificationIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  MoreVert as MoreVertIcon,
+  Refresh as RefreshIcon,
+  ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material';
-import { useState, useEffect, useCallback, useTransition, Suspense } from 'react';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip as ChartTooltip,
-  Legend,
-  Filler,
-} from 'chart.js';
-import { motion, AnimatePresence } from 'framer-motion';
-import StatCard from '../../components/common/StatCard';
-import StatusBadge from '../../components/common/StatusBadge';
-
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  ChartTooltip,
-  Legend,
-  Filler
-);
-
-// Custom styles
-const styles = {
-  gradientCard: {
-    background: theme => `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-    color: 'white',
-    borderRadius: 2,
-    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-  },
-  statsCard: {
-    p: 3,
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    transition: 'transform 0.3s ease',
-    '&:hover': {
-      transform: 'translateY(-5px)',
-    },
-  },
-  chart: {
-    p: 3,
-    height: '100%',
-    minHeight: 400,
-  },
-  resourceCard: {
-    p: 2,
-    display: 'flex',
-    alignItems: 'center',
-    gap: 2,
-    mb: 2,
-  },
-};
-
-interface EmergencyAlert {
-  id: string;
-  type: string;
-  location: string;
-  timestamp: string;
-  severity: 'critical' | 'moderate' | 'stable';
-  status: string;
-}
-
-interface TeamMember {
-  id: string;
-  name: string;
-  role: string;
-  status: 'active' | 'standby' | 'offline';
-  avatar: string;
-}
-
-const mockAlerts: EmergencyAlert[] = [
-  {
-    id: '1',
-    type: 'Cardiac Emergency',
-    location: 'Central Hospital, Floor 3',
-    timestamp: '2 mins ago',
-    severity: 'critical',
-    status: 'Active Response',
-  },
-  {
-    id: '2',
-    type: 'Traffic Accident',
-    location: 'Main St & 5th Ave',
-    timestamp: '5 mins ago',
-    severity: 'moderate',
-    status: 'En Route',
-  },
-  {
-    id: '3',
-    type: 'Medical Emergency',
-    location: 'Downtown Clinic',
-    timestamp: '10 mins ago',
-    severity: 'stable',
-    status: 'Resolved',
-  },
-];
-
-const mockTeamMembers: TeamMember[] = [
-  {
-    id: '1',
-    name: 'Dr. Sarah Johnson',
-    role: 'Emergency Physician',
-    status: 'active',
-    avatar: '/avatars/1.jpg',
-  },
-  {
-    id: '2',
-    name: 'James Wilson',
-    role: 'Paramedic',
-    status: 'active',
-    avatar: '/avatars/2.jpg',
-  },
-  {
-    id: '3',
-    name: 'Emma Thompson',
-    role: 'Emergency Nurse',
-    status: 'standby',
-    avatar: '/avatars/3.jpg',
-  },
-];
 
 const Dashboard = () => {
   const theme = useTheme();
-  const [isPending, startTransition] = useTransition();
-  const [isLoading, setIsLoading] = useState(false);
-  const [stats, setStats] = useState({
-    activeEmergencies: 12,
-    availableTeams: 8,
-    avgResponseTime: 4.5,
-    successRate: 94,
-    totalPatients: 156,
-    criticalCases: 23,
-  });
+  const [activeCard, setActiveCard] = useState<number | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<any>(null);
 
-  const [timeRange, setTimeRange] = useState('24h');
+  // Mock data for hospitalStats
+  const hospitalStats = [
+    { name: 'Emergency', available: 15, total: 30 },
+    { name: 'ICU', available: 5, total: 20 },
+    { name: 'Surgical', available: 12, total: 40 },
+    { name: 'Pediatric', available: 8, total: 25 },
+  ];
 
-  const handleRefresh = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      startTransition(() => {
-        setStats(prev => ({
-          ...prev,
-          activeEmergencies: prev.activeEmergencies + Math.floor(Math.random() * 3) - 1,
-          availableTeams: prev.availableTeams + Math.floor(Math.random() * 2) - 1,
-          avgResponseTime: Number((prev.avgResponseTime + (Math.random() * 0.4 - 0.2)).toFixed(1)),
-          successRate: Math.min(100, Math.max(0, prev.successRate + Math.floor(Math.random() * 3) - 1)),
-          totalPatients: prev.totalPatients + Math.floor(Math.random() * 5),
-          criticalCases: Math.max(0, prev.criticalCases + Math.floor(Math.random() * 3) - 1),
-        }));
-      });
-    } finally {
-      setIsLoading(false);
+  // Mock data for recent activities
+  const recentActivities = [
+    { 
+      id: 1, 
+      type: 'emergency',
+      title: 'New Emergency Admission', 
+      description: 'Patient with cardiac symptoms admitted to ER',
+      time: '10 minutes ago',
+      severity: 'high',
+      details: 'Patient #4389, Male, 58 years old, was admitted to the Emergency Room with symptoms of chest pain and shortness of breath. Initial assessment suggests possible myocardial infarction. ECG and cardiac enzyme tests have been ordered.',
+    },
+    { 
+      id: 2, 
+      type: 'transfer',
+      title: 'Patient Transfer Completed', 
+      description: 'Patient #1234 transferred from ER to ICU',
+      time: '1 hour ago',
+      severity: 'medium',
+      details: 'Patient #1234, Female, 42 years old, has been successfully transferred from the Emergency Room to the Intensive Care Unit. The patient was stabilized after an initial diagnosis of severe pneumonia with respiratory distress. Continuing oxygen therapy and IV antibiotics as per protocol.',
+    },
+    { 
+      id: 3, 
+      type: 'system',
+      title: 'System Maintenance', 
+      description: 'Scheduled maintenance completed successfully',
+      time: '3 hours ago',
+      severity: 'low',
+      details: 'Scheduled system maintenance completed successfully. The electronic health record system was updated to version 2.4.3. New features include improved medication reconciliation workflow and enhanced security protocols. No data loss or downtime was experienced during the update.',
+    },
+  ];
+
+  // Get icon for activity type
+  const getActivityIcon = (type: string, severity: string) => {
+    switch (type) {
+      case 'emergency':
+        return <ErrorIcon color="error" />;
+      case 'transfer':
+        return <WarningIcon color="warning" />;
+      case 'system':
+        return <CheckCircleIcon color="success" />;
+      default:
+        return <NotificationIcon color="info" />;
     }
-  }, [startTransition]);
-
-  const handleTimeRangeChange = (range: string) => {
-    startTransition(() => {
-      setTimeRange(range);
-    });
   };
-
-  useEffect(() => {
-    const interval = setInterval(handleRefresh, 30000);
-    return () => clearInterval(interval);
-  }, [handleRefresh]);
-
-  const responseTimeData = {
-    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-    datasets: [
-      {
-        label: 'Response Time (mins)',
-        data: [5.2, 4.8, 6.1, 4.3, 5.9, 4.5],
-        borderColor: theme.palette.primary.main,
-        backgroundColor: alpha(theme.palette.primary.main, 0.1),
-        fill: true,
-        tension: 0.4,
-      },
-    ],
+  
+  // Handle card click
+  const handleCardClick = (index: number) => {
+    setActiveCard(index);
+    // You could navigate to a detailed page or open a modal here
   };
-
-  const emergencyTypeData = {
-    labels: ['Cardiac', 'Trauma', 'Respiratory', 'Neurological', 'Other'],
-    datasets: [
-      {
-        data: [30, 25, 20, 15, 10],
-        backgroundColor: [
-          theme.palette.error.main,
-          theme.palette.warning.main,
-          theme.palette.info.main,
-          theme.palette.success.main,
-          theme.palette.grey[500],
-        ],
-        borderWidth: 0,
-      },
-    ],
+  
+  // Handle activity click
+  const handleActivityClick = (activity: any) => {
+    setSelectedActivity(activity);
+    setDetailsOpen(true);
   };
 
   return (
-    <Box
-      component={motion.div}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      sx={{
-        p: 3,
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.1)} 0%, ${alpha(theme.palette.background.default, 0.95)} 100%)`,
-      }}
-    >
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" fontWeight="bold" color="primary">
-          Emergency Response Dashboard
-        </Typography>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Badge badgeContent={3} color="error">
-            <IconButton color="primary">
-              <NotificationsIcon />
-            </IconButton>
-          </Badge>
-          <Tooltip title="Refresh Data">
-            <IconButton 
-              onClick={handleRefresh} 
-              color="primary"
-              disabled={isLoading || isPending}
-            >
-              {(isLoading || isPending) ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                <RefreshIcon />
-              )}
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      </Stack>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Dashboard</Typography>
+          <Typography variant="body1" color="text.secondary">
+            Welcome back! Here's an overview of your hospital system.
+          </Typography>
+        </Box>
+        <Tooltip title="Refresh data">
+          <IconButton sx={{ 
+            bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+            '&:hover': {
+              bgcolor: (theme) => alpha(theme.palette.primary.main, 0.2),
+            }
+          }}>
+            <RefreshIcon color="primary" />
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       <Grid container spacing={3}>
-        <Suspense fallback={
-          <Box sx={{ width: '100%', mt: 2 }}>
-            <LinearProgress />
-          </Box>
-        }>
-          {/* Stats Cards */}
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Active Emergencies"
-              value={stats.activeEmergencies}
-              icon={<EmergencyIcon />}
-              color="error"
-              trend={{ value: 8, isPositive: false }}
-              loading={isPending}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Available Teams"
-              value={stats.availableTeams}
-              icon={<DirectionsRun />}
-              color="success"
-              trend={{ value: 2, isPositive: true }}
-              loading={isPending}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Avg. Response Time"
-              value={`${stats.avgResponseTime}m`}
-              icon={<TimeIcon />}
-              color="warning"
-              trend={{ value: 12, isPositive: true }}
-              loading={isPending}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Success Rate"
-              value={`${stats.successRate}%`}
-              icon={<CheckCircleIcon />}
-              color="info"
-              trend={{ value: 5, isPositive: true }}
-              loading={isPending}
-            />
-          </Grid>
+        {/* Total Patients Card */}
+        <Grid item xs={12} md={6} lg={3}>
+          <Card sx={{ 
+            p: 3, 
+            height: '100%',
+            borderRadius: 2,
+            boxShadow: (theme) => `0 6px 16px -4px ${alpha(theme.palette.primary.main, 0.12)}`,
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+            cursor: 'pointer',
+            '&:hover': {
+              transform: 'translateY(-5px)',
+              boxShadow: (theme) => `0 12px 24px -4px ${alpha(theme.palette.primary.main, 0.2)}`,
+            }
+          }}
+          onClick={() => handleCardClick(0)}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Avatar sx={{ 
+                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1), 
+                color: 'primary.main',
+                width: 56,
+                height: 56,
+              }}>
+                <StaffIcon fontSize="large" />
+              </Avatar>
+              <Chip 
+                label="+5%" 
+                color="success" 
+                size="small"
+                sx={{ 
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  height: '28px'
+                }} 
+              />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>1,234</Typography>
+            <Typography variant="body2" color="text.secondary">Total Patients</Typography>
+          </Card>
+        </Grid>
 
-          {/* Main Content */}
-          <Grid item xs={12} md={8}>
-            <Card
-              component={motion.div}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              sx={{
-                p: 3,
-                height: '100%',
-                background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.95)} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-              }}
-            >
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="h6">Response Time Trends</Typography>
-                <Stack direction="row" spacing={1}>
-                  {['24h', '7d', '30d'].map((range) => (
-                    <Button
-                      key={range}
-                      size="small"
-                      variant={timeRange === range ? 'contained' : 'outlined'}
-                      onClick={() => handleTimeRangeChange(range)}
-                      disabled={isPending}
-                    >
-                      {range}
-                    </Button>
-                  ))}
-                </Stack>
-              </Stack>
-              <Box sx={{ height: 300, position: 'relative' }}>
-                {isPending && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      bgcolor: 'rgba(255, 255, 255, 0.7)',
-                      zIndex: 1,
-                    }}
-                  >
-                    <CircularProgress />
-                  </Box>
-                )}
-                <Line
-                  data={responseTimeData}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: {
-                        display: false,
-                      },
-                    },
-                    scales: {
-                      y: {
-                        beginAtZero: true,
-                        grid: {
-                          display: true,
-                          color: alpha(theme.palette.divider, 0.1),
-                        },
-                      },
-                      x: {
-                        grid: {
-                          display: false,
-                        },
-                      },
-                    },
-                  }}
-                />
-              </Box>
-            </Card>
-          </Grid>
+        {/* Available Beds */}
+        <Grid item xs={12} md={6} lg={3}>
+          <Card sx={{ 
+            p: 3, 
+            height: '100%',
+            borderRadius: 2,
+            boxShadow: (theme) => `0 6px 16px -4px ${alpha(theme.palette.success.main, 0.12)}`,
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+            cursor: 'pointer',
+            '&:hover': {
+              transform: 'translateY(-5px)',
+              boxShadow: (theme) => `0 12px 24px -4px ${alpha(theme.palette.success.main, 0.2)}`,
+            }
+          }}
+          onClick={() => handleCardClick(1)}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Avatar sx={{ 
+                bgcolor: (theme) => alpha(theme.palette.success.main, 0.1),
+                color: 'success.main',
+                width: 56,
+                height: 56,
+              }}>
+                <BedsIcon fontSize="large" />
+              </Avatar>
+              <Chip 
+                label="+8%" 
+                color="success" 
+                size="small"
+                sx={{ 
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  height: '28px'
+                }} 
+              />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>235</Typography>
+            <Typography variant="body2" color="text.secondary">Available Beds</Typography>
+          </Card>
+        </Grid>
 
-          {/* Emergency Types */}
-          <Grid item xs={12} md={4}>
-            <Card
-              sx={{
-                p: 3,
-                height: '100%',
-                background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.95)} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-                position: 'relative',
-              }}
-            >
-              <Typography variant="h6" mb={3}>Emergency Distribution</Typography>
-              {isPending && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: 'rgba(255, 255, 255, 0.7)',
-                    zIndex: 1,
+        {/* Emergency Cases */}
+        <Grid item xs={12} md={6} lg={3}>
+          <Card sx={{ 
+            p: 3, 
+            height: '100%',
+            borderRadius: 2,
+            boxShadow: (theme) => `0 6px 16px -4px ${alpha(theme.palette.error.main, 0.12)}`,
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+            cursor: 'pointer',
+            '&:hover': {
+              transform: 'translateY(-5px)',
+              boxShadow: (theme) => `0 12px 24px -4px ${alpha(theme.palette.error.main, 0.2)}`,
+            }
+          }}
+          onClick={() => handleCardClick(2)}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Avatar sx={{ 
+                bgcolor: (theme) => alpha(theme.palette.error.main, 0.1),
+                color: 'error.main',
+                width: 56,
+                height: 56,
+              }}>
+                <MedicalIcon fontSize="large" />
+              </Avatar>
+              <Chip 
+                label="+12%" 
+                color="error" 
+                size="small"
+                sx={{ 
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  height: '28px'
+                }} 
+              />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>23</Typography>
+            <Typography variant="body2" color="text.secondary">Emergency Cases</Typography>
+          </Card>
+        </Grid>
+
+        {/* Response Time */}
+        <Grid item xs={12} md={6} lg={3}>
+          <Card sx={{ 
+            p: 3, 
+            height: '100%',
+            borderRadius: 2,
+            boxShadow: (theme) => `0 6px 16px -4px ${alpha(theme.palette.info.main, 0.12)}`,
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+            cursor: 'pointer',
+            '&:hover': {
+              transform: 'translateY(-5px)',
+              boxShadow: (theme) => `0 12px 24px -4px ${alpha(theme.palette.info.main, 0.2)}`,
+            }
+          }}
+          onClick={() => handleCardClick(3)}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Avatar sx={{ 
+                bgcolor: (theme) => alpha(theme.palette.info.main, 0.1),
+                color: 'info.main',
+                width: 56,
+                height: 56,
+              }}>
+                <TimeIcon fontSize="large" />
+              </Avatar>
+              <Chip 
+                label="-8%" 
+                color="info" 
+                size="small"
+                sx={{ 
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  height: '28px'
+                }} 
+              />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>42</Typography>
+            <Typography variant="body2" color="text.secondary">Avg. Wait Time (min)</Typography>
+          </Card>
+        </Grid>
+
+        {/* Hospital Capacity */}
+        <Grid item xs={12} md={8}>
+          <Card sx={{ 
+            p: 3,
+            borderRadius: 2,
+            boxShadow: (theme) => `0 6px 16px -4px ${alpha(theme.palette.divider, 0.1)}`,
+          }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>Hospital Capacity</Typography>
+              <Tooltip title="View detailed capacity report">
+                <IconButton 
+                  size="small" 
+                  sx={{ 
+                    bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+                    '&:hover': {
+                      bgcolor: (theme) => alpha(theme.palette.primary.main, 0.2),
+                    }
                   }}
                 >
-                  <CircularProgress />
-                </Box>
-              )}
-              <Box sx={{ height: 300, display: 'flex', justifyContent: 'center' }}>
-                <Doughnut
-                  data={emergencyTypeData}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: {
-                        position: 'bottom',
-                      },
-                    },
-                    cutout: '70%',
-                  }}
-                />
-              </Box>
-            </Card>
-          </Grid>
-
-          {/* Recent Alerts */}
-          <Grid item xs={12} md={6}>
-            <Card
-              sx={{
-                p: 3,
-                height: '100%',
-                background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.95)} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-              }}
-            >
-              <Typography variant="h6" mb={2}>Recent Alerts</Typography>
-              <List>
-                <AnimatePresence>
-                  {mockAlerts.map((alert) => (
-                    <motion.div
-                      key={alert.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                    >
-                      <ListItem
-                        sx={{
-                          mb: 2,
-                          borderRadius: 2,
-                          bgcolor: alpha(theme.palette.primary.main, 0.05),
-                          opacity: isPending ? 0.7 : 1,
-                          transition: 'opacity 0.2s',
-                        }}
-                      >
-                        <ListItemAvatar>
-                          <Avatar
-                            sx={{
-                              bgcolor: alpha(
-                                theme.palette[alert.severity === 'critical' ? 'error' : alert.severity === 'moderate' ? 'warning' : 'success'].main,
-                                0.2
-                              ),
-                              color: theme.palette[alert.severity === 'critical' ? 'error' : alert.severity === 'moderate' ? 'warning' : 'success'].main,
-                            }}
-                          >
-                            <EmergencyIcon />
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={
-                            <Typography variant="body1" component="span">
-                              {alert.type}
-                            </Typography>
-                          }
-                          secondary={
-                            <Stack 
-                              direction="row" 
-                              alignItems="center" 
-                              spacing={1} 
-                              component="span"
-                            >
-                              <LocationIcon sx={{ fontSize: 14 }} />
-                              <Typography variant="body2" component="span">
-                                {alert.location}
-                              </Typography>
-                              <Typography variant="caption" component="span" color="text.secondary">
-                                • {alert.timestamp}
-                              </Typography>
-                            </Stack>
-                          }
-                        />
-                        <StatusBadge status={alert.severity} />
-                      </ListItem>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </List>
-            </Card>
-          </Grid>
-
-          {/* Active Teams */}
-          <Grid item xs={12} md={6}>
-            <Card
-              sx={{
-                p: 3,
-                height: '100%',
-                background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.95)} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-              }}
-            >
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">Active Teams</Typography>
-                <AvatarGroup max={4}>
-                  {mockTeamMembers.map((member) => (
-                    <Tooltip key={member.id} title={`${member.name} - ${member.role}`}>
-                      <Avatar
-                        src={member.avatar}
-                        sx={{
-                          border: `2px solid ${theme.palette[member.status === 'active' ? 'success' : member.status === 'standby' ? 'warning' : 'error'].main}`,
-                          opacity: isPending ? 0.7 : 1,
-                          transition: 'opacity 0.2s',
-                        }}
-                      />
-                    </Tooltip>
-                  ))}
-                </AvatarGroup>
-              </Stack>
-              <List>
-                {mockTeamMembers.map((member) => (
-                  <ListItem
-                    key={member.id}
-                    sx={{
-                      mb: 2,
+                  <ArrowForwardIcon color="primary" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+            <Grid container spacing={3}>
+              {hospitalStats.map((stat) => {
+                const availabilityPercent = (stat.available / stat.total) * 100;
+                const statusColor = availabilityPercent < 30 ? "error" : availabilityPercent < 60 ? "warning" : "success";
+                
+                return (
+                  <Grid item xs={12} sm={6} key={stat.name}>
+                    <Paper sx={{ 
+                      p: 2, 
                       borderRadius: 2,
-                      bgcolor: alpha(theme.palette.primary.main, 0.05),
-                      opacity: isPending ? 0.7 : 1,
-                      transition: 'opacity 0.2s',
+                      boxShadow: 'none',
+                      border: 1,
+                      borderColor: (theme) => alpha(theme.palette.divider, 0.1),
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                      '&:hover': {
+                        transform: 'translateY(-3px)',
+                        boxShadow: (theme) => `0 4px 12px -2px ${alpha(theme.palette.divider, 0.2)}`,
+                      }
                     }}
+                    onClick={() => console.log(`Viewing details for ${stat.name}`)}
+                    >
+                      <Typography variant="subtitle2" sx={{ mb: 2 }}>{stat.name}</Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="h5" sx={{ fontWeight: 600 }}>{stat.available}</Typography>
+                        <Typography color="text.secondary" variant="body2">of {stat.total}</Typography>
+                      </Box>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={availabilityPercent} 
+                        color={statusColor}
+                        sx={{ height: 8, borderRadius: 4 }} 
+                      />
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0.5 }}>
+                        <Typography variant="caption" color={`${statusColor}.main`} sx={{ fontWeight: 600 }}>
+                          {availabilityPercent.toFixed(0)}% Available
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Card>
+        </Grid>
+
+        {/* Recent Activities */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ 
+            p: 3,
+            height: '100%',
+            borderRadius: 2,
+            boxShadow: (theme) => `0 6px 16px -4px ${alpha(theme.palette.divider, 0.1)}`,
+          }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>Recent Activities</Typography>
+              <Tooltip title="View all activities">
+                <IconButton 
+                  size="small" 
+                  sx={{ 
+                    bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+                    '&:hover': {
+                      bgcolor: (theme) => alpha(theme.palette.primary.main, 0.2),
+                    }
+                  }}
+                >
+                  <ArrowForwardIcon color="primary" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+            <List sx={{ p: 0 }}>
+              {recentActivities.map((activity, index) => (
+                <React.Fragment key={activity.id}>
+                  <ListItem 
+                    alignItems="flex-start" 
+                    sx={{ 
+                      px: 0, 
+                      py: 1.5,
+                      cursor: 'pointer',
+                      borderRadius: 1,
+                      '&:hover': {
+                        bgcolor: (theme) => alpha(theme.palette.primary.main, 0.05),
+                      }
+                    }}
+                    onClick={() => handleActivityClick(activity)}
                   >
                     <ListItemAvatar>
-                      <Avatar src={member.avatar} />
+                      <Avatar sx={{ 
+                        bgcolor: (theme) => {
+                          switch (activity.severity) {
+                            case 'high': return alpha(theme.palette.error.main, 0.1);
+                            case 'medium': return alpha(theme.palette.warning.main, 0.1);
+                            case 'low': return alpha(theme.palette.success.main, 0.1);
+                            default: return alpha(theme.palette.primary.main, 0.1);
+                          }
+                        },
+                        color: (theme) => {
+                          switch (activity.severity) {
+                            case 'high': return theme.palette.error.main;
+                            case 'medium': return theme.palette.warning.main;
+                            case 'low': return theme.palette.success.main;
+                            default: return theme.palette.primary.main;
+                          }
+                        }
+                      }}>
+                        {getActivityIcon(activity.type, activity.severity)}
+                      </Avatar>
                     </ListItemAvatar>
                     <ListItemText
                       primary={
-                        <Typography variant="body1" component="span">
-                          {member.name}
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          {activity.title}
                         </Typography>
                       }
                       secondary={
-                        <Typography variant="body2" component="span" color="text.secondary">
-                          {member.role}
-                        </Typography>
+                        <React.Fragment>
+                          <Typography variant="body2" color="text.secondary" component="span" sx={{ display: 'block' }}>
+                            {activity.description}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" component="span" sx={{ display: 'block', fontStyle: 'italic' }}>
+                            {activity.time}
+                          </Typography>
+                        </React.Fragment>
                       }
                     />
-                    <Chip
-                      label={member.status}
-                      size="small"
-                      color={member.status === 'active' ? 'success' : member.status === 'standby' ? 'warning' : 'error'}
-                      sx={{ textTransform: 'capitalize' }}
-                    />
+                    <Tooltip title="More actions">
+                      <IconButton size="small" onClick={(e) => {
+                        e.stopPropagation();
+                        console.log(`Show actions for activity ${activity.id}`);
+                      }}>
+                        <MoreVertIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                   </ListItem>
-                ))}
-              </List>
-            </Card>
-          </Grid>
-        </Suspense>
+                  {index < recentActivities.length - 1 && (
+                    <Divider variant="inset" component="li" />
+                  )}
+                </React.Fragment>
+              ))}
+            </List>
+          </Card>
+        </Grid>
       </Grid>
-    </Box>
+
+      {/* Activity Details Dialog */}
+      <Dialog 
+        open={detailsOpen} 
+        onClose={() => setDetailsOpen(false)} 
+        fullWidth 
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+          }
+        }}
+      >
+        {selectedActivity && (
+          <>
+            <DialogTitle sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              bgcolor: (theme) => {
+                switch (selectedActivity.severity) {
+                  case 'high': return alpha(theme.palette.error.main, 0.05);
+                  case 'medium': return alpha(theme.palette.warning.main, 0.05);
+                  case 'low': return alpha(theme.palette.success.main, 0.05);
+                  default: return alpha(theme.palette.primary.main, 0.05);
+                }
+              }
+            }}>
+              <Avatar sx={{ 
+                bgcolor: (theme) => {
+                  switch (selectedActivity.severity) {
+                    case 'high': return alpha(theme.palette.error.main, 0.1);
+                    case 'medium': return alpha(theme.palette.warning.main, 0.1);
+                    case 'low': return alpha(theme.palette.success.main, 0.1);
+                    default: return alpha(theme.palette.primary.main, 0.1);
+                  }
+                },
+                color: (theme) => {
+                  switch (selectedActivity.severity) {
+                    case 'high': return theme.palette.error.main;
+                    case 'medium': return theme.palette.warning.main;
+                    case 'low': return theme.palette.success.main;
+                    default: return theme.palette.primary.main;
+                  }
+                }
+              }}>
+                {getActivityIcon(selectedActivity.type, selectedActivity.severity)}
+              </Avatar>
+              <Typography variant="h6">{selectedActivity.title}</Typography>
+            </DialogTitle>
+            <DialogContent dividers>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.secondary" component="span" sx={{ display: 'block' }}>Time</Typography>
+                <Typography variant="body2" component="span" sx={{ display: 'block' }}>{selectedActivity.time}</Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.secondary" component="span" sx={{ display: 'block' }}>Priority</Typography>
+                <Chip 
+                  label={selectedActivity.severity.charAt(0).toUpperCase() + selectedActivity.severity.slice(1)} 
+                  size="small"
+                  color={
+                    selectedActivity.severity === 'high' ? 'error' : 
+                    selectedActivity.severity === 'medium' ? 'warning' : 'success'
+                  }
+                  sx={{ ml: 1 }}
+                />
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary" component="span" sx={{ display: 'block' }}>Details</Typography>
+                <Typography variant="body2" component="span" sx={{ display: 'block', mt: 0.5 }}>{selectedActivity.details}</Typography>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button 
+                onClick={() => setDetailsOpen(false)}
+                sx={{ textTransform: 'none' }}
+              >
+                Close
+              </Button>
+              <Button 
+                variant="contained" 
+                color="primary"
+                sx={{ textTransform: 'none' }}
+                onClick={() => {
+                  setDetailsOpen(false);
+                  console.log(`Taking action on ${selectedActivity.title}`);
+                }}
+              >
+                Take Action
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </Container>
   );
 };
 

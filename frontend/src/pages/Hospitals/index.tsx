@@ -46,6 +46,7 @@ import {
   ListItemText,
   ListItemAvatar,
   alpha,
+  Container,
 } from '@mui/material';
 import {
   Timeline,
@@ -422,13 +423,18 @@ const Hospitals = () => {
   };
 
   return (
-    <Box
-      sx={{
-        p: 3,
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.1)} 0%, ${alpha(theme.palette.background.default, 0.95)} 100%)`,
-      }}
-    >
+    <Container maxWidth="xl" sx={{ height: '100%' }}>
+      <Grid container spacing={3} sx={{ mb: 3, pt: 3 }}>
+        <Grid item xs={12} md={8} sx={{ pl: { xs: 5, md: 3 } }}>
+          <Typography variant="h4" sx={{ mb: 1, fontWeight: 700 }}>
+            Hospitals
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            Manage and monitor hospital facilities
+          </Typography>
+        </Grid>
+      </Grid>
+      
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -864,7 +870,7 @@ const Hospitals = () => {
           <Button onClick={() => setStatsDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Container>
   );
 };
 

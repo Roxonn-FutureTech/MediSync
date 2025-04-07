@@ -203,7 +203,7 @@ const HospitalDetail: FC<HospitalDetailProps> = ({ hospital, open, onClose }) =>
                 <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <HospitalIcon color="primary" /> About
                 </Typography>
-                <Typography variant="body2" paragraph>
+                <Typography variant="body2" sx={{ mb: 2 }}>
                   {hospital.description || 'A leading healthcare facility providing exceptional medical services to the community. Specializing in various healthcare domains with state-of-the-art equipment and experienced professionals.'}
                 </Typography>
                 
