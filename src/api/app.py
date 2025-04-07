@@ -131,11 +131,8 @@ def get_hospital(hospital_id):
 def update_hospital(hospital_id):
     hospital = Hospital.query.get_or_404(hospital_id)
     schema = HospitalSchema()
-    try:
-        data = schema.load(request.json)
-    except ValidationError as err:
-        return jsonify(err.messages), 400
-
+    data = schema.load(request.json)
+    
     hospital.name = data['name']
     hospital.address = data['address']
     hospital.phone = data['phone']
