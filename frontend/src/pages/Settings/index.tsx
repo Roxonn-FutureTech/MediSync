@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { motion } from 'framer-motion';
 import {
   Box,
@@ -23,6 +23,11 @@ import {
   Tabs,
   Tab,
   Chip,
+  Container,
+  CardContent,
+  Radio,
+  RadioGroup,
+  Tooltip,
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
@@ -38,7 +43,14 @@ import {
   DarkMode as DarkModeIcon,
   LightMode as LightModeIcon,
   Settings as SettingsIcon,
+  DeviceHub as SystemIcon,
+  Info as AboutIcon,
+  Accessibility as AccessibilityIcon,
+  DataUsage as DataIcon,
+  CloudUpload as CloudIcon,
+  BugReport as BugIcon,
 } from '@mui/icons-material';
+import { ColorModeContext } from '../../context/ColorModeContext';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -68,6 +80,7 @@ function TabPanel(props: TabPanelProps) {
 
 const Settings = () => {
   const theme = useTheme();
+  const colorMode = useContext(ColorModeContext);
   const [activeTab, setActiveTab] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState({
@@ -84,6 +97,19 @@ const Settings = () => {
     hospital: 'Central Medical Center',
     role: 'Emergency Physician',
   });
+  const [activeSection, setActiveSection] = useState('theme');
+
+  // Define sections
+  const sections = [
+    { id: 'theme', label: 'Theme', icon: <PaletteIcon /> },
+    { id: 'profile', label: 'Profile', icon: <PersonIcon /> },
+    { id: 'security', label: 'Security', icon: <SecurityIcon /> },
+    { id: 'notifications', label: 'Notifications', icon: <NotificationsIcon /> },
+    { id: 'language', label: 'Language', icon: <LanguageIcon /> },
+    { id: 'accessibility', label: 'Accessibility', icon: <AccessibilityIcon /> },
+    { id: 'data', label: 'Data & Storage', icon: <DataIcon /> },
+    { id: 'about', label: 'About', icon: <AboutIcon /> },
+  ];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -112,250 +138,337 @@ const Settings = () => {
   };
 
   return (
-    <Box
-      sx={{
-        p: 3,
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.1)} 0%, ${alpha(theme.palette.background.default, 0.95)} 100%)`,
-      }}
-    >
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h4" fontWeight="bold" color="primary">
+    <Container maxWidth="xl" sx={{ height: '100%' }}>
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={8} sx={{ pl: { xs: 5, md: 3 }, pt: 3 }}>
+          <Typography variant="h4" sx={{ mb: 1, fontWeight: 700 }}>
             Settings
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<SaveIcon />}
-            onClick={handleSaveSettings}
-          >
-            Save Changes
-          </Button>
-        </Stack>
-
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={3}>
-            <motion.div variants={itemVariants}>
-              <Card sx={{ p: 2 }}>
-                <List>
-                  <ListItem button selected={activeTab === 0} onClick={() => setActiveTab(0)}>
-                    <ListItemIcon>
-                      <PersonIcon color={activeTab === 0 ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Profile" />
-                  </ListItem>
-                  <ListItem button selected={activeTab === 1} onClick={() => setActiveTab(1)}>
-                    <ListItemIcon>
-                      <NotificationsIcon color={activeTab === 1 ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Notifications" />
-                  </ListItem>
-                  <ListItem button selected={activeTab === 2} onClick={() => setActiveTab(2)}>
-                    <ListItemIcon>
-                      <SecurityIcon color={activeTab === 2 ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Security" />
-                  </ListItem>
-                  <ListItem button selected={activeTab === 3} onClick={() => setActiveTab(3)}>
-                    <ListItemIcon>
-                      <PaletteIcon color={activeTab === 3 ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Appearance" />
-                  </ListItem>
-                </List>
-              </Card>
-            </motion.div>
-          </Grid>
-
-          <Grid item xs={12} md={9}>
-            <motion.div variants={itemVariants}>
-              <Card sx={{ p: 3 }}>
-                <TabPanel value={activeTab} index={0}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" gutterBottom>Profile Information</Typography>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Full Name"
-                        value={profile.name}
-                        onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Email"
-                        value={profile.email}
-                        onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Phone"
-                        value={profile.phone}
-                        onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Hospital"
-                        value={profile.hospital}
-                        onChange={(e) => setProfile({ ...profile, hospital: e.target.value })}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Role"
-                        value={profile.role}
-                        onChange={(e) => setProfile({ ...profile, role: e.target.value })}
-                      />
-                    </Grid>
-                  </Grid>
-                </TabPanel>
-
-                <TabPanel value={activeTab} index={1}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" gutterBottom>Notification Preferences</Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <List>
-                        <ListItem>
-                          <ListItemIcon>
-                            <EmailIcon />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary="Email Notifications"
-                            secondary="Receive updates and alerts via email"
-                          />
-                          <Switch
-                            checked={notifications.email}
-                            onChange={(e) => setNotifications({ ...notifications, email: e.target.checked })}
-                          />
-                        </ListItem>
-                        <ListItem>
-                          <ListItemIcon>
-                            <NotificationsIcon />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary="Push Notifications"
-                            secondary="Receive instant alerts on your device"
-                          />
-                          <Switch
-                            checked={notifications.push}
-                            onChange={(e) => setNotifications({ ...notifications, push: e.target.checked })}
-                          />
-                        </ListItem>
-                        <ListItem>
-                          <ListItemIcon>
-                            <PhoneIcon />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary="SMS Notifications"
-                            secondary="Receive text message alerts"
-                          />
-                          <Switch
-                            checked={notifications.sms}
-                            onChange={(e) => setNotifications({ ...notifications, sms: e.target.checked })}
-                          />
-                        </ListItem>
-                      </List>
-                    </Grid>
-                  </Grid>
-                </TabPanel>
-
-                <TabPanel value={activeTab} index={2}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" gutterBottom>Security Settings</Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <List>
-                        <ListItem>
-                          <ListItemIcon>
-                            <SecurityIcon />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary="Two-Factor Authentication"
-                            secondary="Add an extra layer of security to your account"
-                          />
-                          <Button variant="outlined" color="primary">
-                            Enable
-                          </Button>
-                        </ListItem>
-                        <Divider sx={{ my: 2 }} />
-                        <ListItem>
-                          <ListItemText
-                            primary="Password"
-                            secondary="Last changed 30 days ago"
-                          />
-                          <Button variant="outlined">
-                            Change Password
-                          </Button>
-                        </ListItem>
-                      </List>
-                    </Grid>
-                  </Grid>
-                </TabPanel>
-
-                <TabPanel value={activeTab} index={3}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" gutterBottom>Appearance Settings</Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <List>
-                        <ListItem>
-                          <ListItemIcon>
-                            {darkMode ? <DarkModeIcon /> : <LightModeIcon />}
-                          </ListItemIcon>
-                          <ListItemText
-                            primary="Dark Mode"
-                            secondary="Toggle between light and dark theme"
-                          />
-                          <Switch
-                            checked={darkMode}
-                            onChange={(e) => setDarkMode(e.target.checked)}
-                          />
-                        </ListItem>
-                        <ListItem>
-                          <ListItemIcon>
-                            <LanguageIcon />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary="Language"
-                            secondary="Choose your preferred language"
-                          />
-                          <TextField
-                            select
-                            value={language}
-                            onChange={(e) => setLanguage(e.target.value)}
-                            sx={{ minWidth: 150 }}
-                          >
-                            <MenuItem value="en">English</MenuItem>
-                            <MenuItem value="es">Spanish</MenuItem>
-                            <MenuItem value="fr">French</MenuItem>
-                          </TextField>
-                        </ListItem>
-                      </List>
-                    </Grid>
-                  </Grid>
-                </TabPanel>
-              </Card>
-            </motion.div>
-          </Grid>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            Customize your MediSync experience
+          </Typography>
         </Grid>
-      </motion.div>
-    </Box>
+      </Grid>
+
+      <Grid container spacing={3}>
+        {/* Sidebar */}
+        <Grid item xs={12} md={3}>
+          <Card sx={{ borderRadius: 2, boxShadow: theme.shadows[2] }}>
+            <CardContent sx={{ p: 0 }}>
+              <List sx={{ py: 1 }}>
+                {sections.map((section) => (
+                  <ListItem
+                    button
+                    key={section.id}
+                    selected={activeSection === section.id}
+                    onClick={() => setActiveSection(section.id)}
+                    component={motion.div}
+                    whileHover={{ x: 4 }}
+                    whileTap={{ scale: 0.98 }}
+                    sx={{
+                      borderLeft: '3px solid',
+                      borderLeftColor: activeSection === section.id 
+                        ? theme.palette.primary.main 
+                        : 'transparent',
+                      py: 1.5,
+                      '&.Mui-selected': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.primary.main, 0.15),
+                        }
+                      },
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                      }
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 40,
+                        color: activeSection === section.id 
+                          ? theme.palette.primary.main 
+                          : alpha(theme.palette.text.primary, 0.7)
+                      }}
+                    >
+                      {section.icon}
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={section.label}
+                      primaryTypographyProps={{
+                        fontWeight: activeSection === section.id ? 600 : 400,
+                      }}
+                    />
+                    {section.id === 'theme' && (
+                      <Box 
+                        sx={{ 
+                          width: 12, 
+                          height: 12, 
+                          borderRadius: '50%', 
+                          backgroundColor: theme.palette.primary.main,
+                          ml: 1,
+                        }} 
+                      />
+                    )}
+                  </ListItem>
+                ))}
+              </List>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Main Content */}
+        <Grid item xs={12} md={9}>
+          <Card 
+            component={motion.div}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            sx={{ 
+              borderRadius: 2, 
+              boxShadow: theme.shadows[2], 
+              minHeight: 500,
+            }}
+          >
+            {activeSection === 'theme' && (
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h5" fontWeight={600} sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
+                    <PaletteIcon sx={{ mr: 1 }} /> Theme Settings
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Customize the appearance of your MediSync application
+                  </Typography>
+                </Box>
+
+                <Divider sx={{ mb: 3 }} />
+
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Card
+                      sx={{
+                        p: 3,
+                        bgcolor: alpha(theme.palette.primary.main, 0.05),
+                        border: '1px solid',
+                        borderColor: alpha(theme.palette.primary.main, 0.1),
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Typography variant="h6" sx={{ mb: 3 }}>Theme Mode</Typography>
+
+                      <Box sx={{ mb: 2 }}>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={colorMode.systemPreference}
+                              onChange={colorMode.toggleSystemPreference}
+                              color="primary"
+                            />
+                          }
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <SystemIcon sx={{ mr: 1, fontSize: 18 }} />
+                              <Typography>Use system theme</Typography>
+                            </Box>
+                          }
+                        />
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, ml: 4.5 }}>
+                          Automatically switch between light and dark mode based on your system preferences
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ mt: 3, mb: 1 }}>
+                        <Typography variant="body2" fontWeight={500} sx={{ mb: 1 }}>
+                          Manual Selection
+                        </Typography>
+                        
+                        <RadioGroup
+                          value={colorMode.mode}
+                          onChange={(e) => {
+                            if (e.target.value === 'light' || e.target.value === 'dark') {
+                              colorMode.toggleColorMode();
+                            }
+                          }}
+                          sx={{ ml: 1 }}
+                        >
+                          <FormControlLabel 
+                            value="light" 
+                            control={<Radio />} 
+                            label={
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <LightModeIcon sx={{ mr: 1, color: theme.palette.warning.main }} />
+                                <Typography>Light Mode</Typography>
+                              </Box>
+                            } 
+                            disabled={colorMode.systemPreference}
+                          />
+                          <FormControlLabel 
+                            value="dark" 
+                            control={<Radio />} 
+                            label={
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <DarkModeIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />
+                                <Typography>Dark Mode</Typography>
+                              </Box>
+                            } 
+                            disabled={colorMode.systemPreference}
+                          />
+                        </RadioGroup>
+                      </Box>
+                    </Card>
+
+                    <Card
+                      sx={{
+                        p: 3,
+                        mt: 3,
+                        border: '1px solid',
+                        borderColor: alpha(theme.palette.divider, 0.1),
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Typography variant="h6" sx={{ mb: 2 }}>Animations</Typography>
+                      
+                      <FormControlLabel
+                        control={<Switch defaultChecked color="primary" />}
+                        label="Enable animations"
+                      />
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, ml: 4.5 }}>
+                        Motion animations and transitions throughout the interface
+                      </Typography>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Card
+                      sx={{
+                        p: 3,
+                        height: '100%',
+                        border: '1px solid',
+                        borderColor: alpha(theme.palette.divider, 0.1),
+                        borderRadius: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                      }}
+                    >
+                      <Typography variant="h6" sx={{ mb: 2 }}>Preview</Typography>
+                      
+                      <Box sx={{ 
+                        flex: 1, 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        alignItems: 'center', 
+                        flexDirection: 'column',
+                        p: 3,
+                        borderRadius: 2,
+                        bgcolor: theme.palette.background.default,
+                        border: '1px solid',
+                        borderColor: alpha(theme.palette.divider, 0.1),
+                        minHeight: 300,
+                      }}>
+                        <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                          {colorMode.mode === 'light' ? 'Light Mode' : 'Dark Mode'}
+                        </Typography>
+                        
+                        <Box sx={{ 
+                          width: '100%', 
+                          maxWidth: 320,
+                          p: 2, 
+                          borderRadius: 2,
+                          bgcolor: theme.palette.background.paper,
+                          border: '1px solid',
+                          borderColor: alpha(theme.palette.divider, 0.1),
+                          boxShadow: theme.shadows[1],
+                          mb: 2,
+                        }}>
+                          <Typography variant="body2" fontWeight={500}>Sample Card</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            This is how content will appear in {colorMode.mode} mode
+                          </Typography>
+                        </Box>
+                        
+                        <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                          <Button 
+                            size="small" 
+                            color="primary" 
+                            variant="contained"
+                          >
+                            Primary
+                          </Button>
+                          <Button 
+                            size="small" 
+                            color="secondary" 
+                            variant="contained"
+                          >
+                            Secondary
+                          </Button>
+                          <Button 
+                            size="small" 
+                            color="error" 
+                            variant="contained"
+                          >
+                            Alert
+                          </Button>
+                        </Box>
+                      </Box>
+                    </Card>
+                  </Grid>
+                </Grid>
+
+                <Box sx={{ mt: 3, textAlign: 'right' }}>
+                  <Button 
+                    variant="outlined" 
+                    color="primary" 
+                    sx={{ mr: 2 }}
+                  >
+                    Reset to Defaults
+                  </Button>
+                  <Button 
+                    variant="contained" 
+                    color="primary"
+                    sx={{ 
+                      background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                      boxShadow: `0 4px 10px 0 ${alpha(theme.palette.primary.main, 0.25)}`,
+                    }}
+                  >
+                    Save Changes
+                  </Button>
+                </Box>
+              </CardContent>
+            )}
+
+            {activeSection !== 'theme' && (
+              <CardContent sx={{ p: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="h5" sx={{ mb: 2, fontWeight: 600, color: alpha(theme.palette.text.primary, 0.7) }}>
+                    {sections.find(s => s.id === activeSection)?.label} Settings
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    This section is under development
+                  </Typography>
+                  <Box 
+                    component={motion.div}
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                    sx={{ mt: 3, opacity: 0.7 }}
+                  >
+                    {sections.find(s => s.id === activeSection)?.icon && (
+                      <Box sx={{ 
+                        fontSize: 60,
+                        color: alpha(theme.palette.primary.main, 0.3),
+                        '& .MuiSvgIcon-root': {
+                          fontSize: 60
+                        }
+                      }}>
+                        {sections.find(s => s.id === activeSection)?.icon}
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              </CardContent>
+            )}
+          </Card>
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
 

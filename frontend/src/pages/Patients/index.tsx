@@ -1,45 +1,35 @@
-import {
+import React from 'react';
+import { 
+  Grid, 
+  Typography, 
   Box,
-  Typography,
-  Grid,
+  Container,
   Card,
   CardContent,
-  Tabs,
-  Tab,
-  TextField,
-  Button,
-  Chip,
   Avatar,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
+  Chip,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  LinearProgress,
-  Alert,
-  Stack,
+  alpha,
+  useTheme,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination
 } from '@mui/material';
 import {
-  Person as PersonIcon,
-  LocalHospital as HospitalIcon,
-  Assignment as AssignmentIcon,
-  Timeline as TimelineIcon,
-  Add as AddIcon,
+  PersonAdd as PersonAddIcon,
+  Visibility as VisibilityIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon,
-  Search as SearchIcon,
-  FilterList as FilterIcon,
-  Sort as SortIcon,
+  MedicalServices,
+  Refresh as RefreshIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
-import { useState } from 'react';
+import { motion } from 'framer-motion';
+import StatCard from '../../components/common/StatCard';
 
 interface Patient {
   id: number;
@@ -47,256 +37,244 @@ interface Patient {
   age: number;
   gender: string;
   bloodType: string;
-  condition: string;
-  severity: 'Critical' | 'Moderate' | 'Stable';
-  admissionDate: string;
-  assignedDoctor: string;
-  assignedHospital: string;
-  roomNumber: string;
-  status: 'Admitted' | 'In Treatment' | 'Discharged' | 'Transfer';
-  medicalHistory: string[];
-  currentMedications: string[];
-  allergies: string[];
-  lastUpdate: string;
+  status: string;
+  lastVisit: string;
+  doctor: string;
 }
 
-// Mock data
-const initialPatients: Patient[] = [
-  {
-    id: 1,
-    name: "John Smith",
-    age: 45,
-    gender: "Male",
-    bloodType: "A+",
-    condition: "Cardiac Arrest",
-    severity: "Critical",
-    admissionDate: "2024-03-15",
-    assignedDoctor: "Dr. Sarah Johnson",
-    assignedHospital: "Central Hospital",
-    roomNumber: "ICU-101",
-    status: "Admitted",
-    medicalHistory: ["Hypertension", "Diabetes Type 2"],
-    currentMedications: ["Aspirin", "Metformin"],
-    allergies: ["Penicillin"],
-    lastUpdate: "10 minutes ago"
-  },
-  {
-    id: 2,
-    name: "Emma Davis",
-    age: 28,
-    gender: "Female",
-    bloodType: "O-",
-    condition: "Multiple Trauma",
-    severity: "Critical",
-    admissionDate: "2024-03-15",
-    assignedDoctor: "Dr. Michael Chen",
-    assignedHospital: "Central Hospital",
-    roomNumber: "ER-205",
-    status: "In Treatment",
-    medicalHistory: ["None"],
-    currentMedications: ["Morphine", "Antibiotics"],
-    allergies: [],
-    lastUpdate: "5 minutes ago"
-  }
+const mockPatients: Patient[] = [
+  { id: 1, name: 'John Smith', age: 45, gender: 'Male', bloodType: 'O+', status: 'Stable', lastVisit: '2023-10-15', doctor: 'Dr. Jane Doe' },
+  { id: 2, name: 'Sarah Johnson', age: 32, gender: 'Female', bloodType: 'A-', status: 'Critical', lastVisit: '2023-10-18', doctor: 'Dr. Michael Lee' },
+  { id: 3, name: 'Robert Williams', age: 58, gender: 'Male', bloodType: 'B+', status: 'Stable', lastVisit: '2023-10-10', doctor: 'Dr. Jane Doe' },
+  { id: 4, name: 'Emily Davis', age: 27, gender: 'Female', bloodType: 'AB+', status: 'Moderate', lastVisit: '2023-10-16', doctor: 'Dr. Sarah Chen' },
+  { id: 5, name: 'Michael Brown', age: 41, gender: 'Male', bloodType: 'O-', status: 'Stable', lastVisit: '2023-10-12', doctor: 'Dr. John Wilson' },
+  { id: 6, name: 'Jennifer Miller', age: 35, gender: 'Female', bloodType: 'A+', status: 'Pending', lastVisit: '2023-10-17', doctor: 'Dr. Michael Lee' },
+  { id: 7, name: 'David Garcia', age: 52, gender: 'Male', bloodType: 'B-', status: 'Stable', lastVisit: '2023-10-11', doctor: 'Dr. Sarah Chen' },
+  { id: 8, name: 'Lisa Rodriguez', age: 29, gender: 'Female', bloodType: 'O+', status: 'Completed', lastVisit: '2023-10-14', doctor: 'Dr. Jane Doe' },
 ];
 
-export default function Patients() {
-  const [patients, setPatients] = useState<Patient[]>(initialPatients);
-  const [currentTab, setCurrentTab] = useState(0);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('all');
+const Patients = () => {
+  const theme = useTheme();
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setCurrentTab(newValue);
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
   };
 
-  const filteredPatients = patients.filter(patient => {
-    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.condition.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || patient.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
-
-  const handleAddPatient = () => {
-    setSelectedPatient(null);
-    setOpenDialog(true);
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
-  const handleEditPatient = (patient: Patient) => {
-    setSelectedPatient(patient);
-    setOpenDialog(true);
-  };
-
-  const handleSavePatient = () => {
-    // Implementation for saving patient data
-    setOpenDialog(false);
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'critical':
+        return 'error';
+      case 'stable':
+        return 'success';
+      case 'moderate':
+        return 'warning';
+      case 'pending':
+        return 'info';
+      case 'completed':
+        return 'success';
+      default:
+        return 'default';
+    }
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" fontWeight="bold">
-          Patient Management
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddPatient}
-          sx={{ px: 3, py: 1 }}
-        >
-          Add Patient
-        </Button>
-      </Box>
-
+    <Container maxWidth="xl" sx={{ height: '100%' }}>
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={8}>
-          <TextField
-            fullWidth
-            placeholder="Search patients by name or condition..."
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+        <Grid item xs={12} md={8} sx={{ pl: { xs: 5, md: 3 }, pt: 3 }}>
+          <Typography variant="h4" sx={{ mb: 1, fontWeight: 700 }}>
+            Patients
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            Manage and monitor patient information
+          </Typography>
+        </Grid>
+        <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, alignItems: 'center' }}>
+          <IconButton 
+            color="primary" 
+            sx={{ 
+              mr: 1, 
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.2) }
             }}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+          >
+            <RefreshIcon />
+          </IconButton>
+          <IconButton 
+            color="primary" 
+            sx={{ 
+              mr: 1, 
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.2) }
+            }}
+          >
+            <SearchIcon />
+          </IconButton>
+          <IconButton 
+            color="primary" 
+            sx={{ 
+              backgroundColor: theme.palette.primary.main,
+              color: 'white',
+              '&:hover': { backgroundColor: theme.palette.primary.dark }
+            }}
+          >
+            <PersonAddIcon />
+          </IconButton>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Total Patients"
+            value="2,564"
+            icon={<MedicalServices />}
+            trend={{ value: 12, isPositive: true }}
+            color="primary"
+            description="Total patients registered in the system"
           />
         </Grid>
-        <Grid item xs={12} md={4}>
-          <FormControl fullWidth>
-            <InputLabel>Filter by Status</InputLabel>
-            <Select
-              value={filterStatus}
-              label="Filter by Status"
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              <MenuItem value="all">All Patients</MenuItem>
-              <MenuItem value="Admitted">Admitted</MenuItem>
-              <MenuItem value="In Treatment">In Treatment</MenuItem>
-              <MenuItem value="Discharged">Discharged</MenuItem>
-              <MenuItem value="Transfer">Transfer</MenuItem>
-            </Select>
-          </FormControl>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="New Patients"
+            value="128"
+            icon={<PersonAddIcon />}
+            trend={{ value: 18, isPositive: true }}
+            color="success"
+            description="New patients in the last 30 days"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Critical Cases"
+            value="28"
+            icon={<MedicalServices />}
+            trend={{ value: 5, isPositive: false }}
+            color="error"
+            description="Patients in critical condition"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Current Inpatients"
+            value="352"
+            icon={<MedicalServices />}
+            trend={{ value: 2, isPositive: true }}
+            color="info"
+            description="Patients currently admitted"
+          />
         </Grid>
       </Grid>
 
-      <Tabs value={currentTab} onChange={handleTabChange} sx={{ mb: 3 }}>
-        <Tab label="All Patients" />
-        <Tab label="Critical Cases" />
-        <Tab label="Recent Admissions" />
-      </Tabs>
-
-      <Grid container spacing={3}>
-        {filteredPatients.map((patient) => (
-          <Grid item xs={12} md={6} lg={4} key={patient.id}>
-            <Card 
-              sx={{ 
-                position: 'relative',
-                '&:hover': { boxShadow: 6 },
-                transition: 'box-shadow 0.3s'
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Avatar sx={{ bgcolor: 'primary.main' }}>
-                      <PersonIcon />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="h6" fontWeight="bold">
-                        {patient.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {patient.age} years • {patient.gender} • {patient.bloodType}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <IconButton onClick={() => handleEditPatient(patient)}>
-                    <EditIcon />
-                  </IconButton>
-                </Box>
-
-                <Chip
-                  label={patient.severity}
-                  color={
-                    patient.severity === 'Critical' ? 'error' :
-                    patient.severity === 'Moderate' ? 'warning' : 'success'
-                  }
-                  sx={{ mb: 2 }}
-                />
-
-                <List dense>
-                  <ListItem>
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'background.paper' }}>
-                        <HospitalIcon color="primary" />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={patient.assignedHospital}
-                      secondary={`Room ${patient.roomNumber}`}
-                    />
-                  </ListItem>
-                  <ListItem>
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'background.paper' }}>
-                        <AssignmentIcon color="primary" />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={patient.condition}
-                      secondary={patient.assignedDoctor}
-                    />
-                  </ListItem>
-                </List>
-
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Medical History
-                  </Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                    {patient.medicalHistory.map((condition, index) => (
-                      <Chip
-                        key={index}
-                        label={condition}
-                        size="small"
-                        variant="outlined"
-                      />
-                    ))}
-                  </Stack>
-                </Box>
-
-                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Chip
-                    label={patient.status}
-                    color={
-                      patient.status === 'Admitted' ? 'info' :
-                      patient.status === 'In Treatment' ? 'warning' :
-                      patient.status === 'Discharged' ? 'success' : 'default'
-                    }
-                  />
-                  <Typography variant="caption" color="text.secondary">
-                    Last updated: {patient.lastUpdate}
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {selectedPatient ? 'Edit Patient' : 'Add New Patient'}
-        </DialogTitle>
-        <DialogContent>
-          {/* Add form fields for patient data */}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button onClick={handleSavePatient} variant="contained">Save</Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+      <Card 
+        component={motion.div}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        sx={{ 
+          mb: 4,
+          overflow: 'hidden',
+          borderRadius: 2,
+          boxShadow: theme.shadows[2]
+        }}
+      >
+        <CardContent sx={{ p: 0 }}>
+          <TableContainer>
+            <Table sx={{ minWidth: 650 }}>
+              <TableHead sx={{ backgroundColor: alpha(theme.palette.primary.main, 0.05) }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 600 }}>Patient</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Age/Gender</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Blood Type</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Last Visit</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Doctor</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {mockPatients
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((patient) => (
+                    <TableRow 
+                      key={patient.id}
+                      sx={{ 
+                        '&:hover': { 
+                          backgroundColor: alpha(theme.palette.primary.main, 0.05) 
+                        },
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Avatar 
+                            sx={{ 
+                              mr: 2,
+                              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                              color: theme.palette.primary.main
+                            }}
+                          >
+                            {patient.name.charAt(0)}
+                          </Avatar>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                            {patient.name}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>{`${patient.age} / ${patient.gender}`}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={patient.bloodType}
+                          size="small"
+                          sx={{ 
+                            fontWeight: 600,
+                            backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                            color: theme.palette.primary.main
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={patient.status}
+                          size="small"
+                          color={getStatusColor(patient.status) as any}
+                          sx={{ fontWeight: 600 }}
+                        />
+                      </TableCell>
+                      <TableCell>{patient.lastVisit}</TableCell>
+                      <TableCell>{patient.doctor}</TableCell>
+                      <TableCell>
+                        <IconButton size="small" color="primary" sx={{ mr: 1 }}>
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" color="primary">
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={mockPatients.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </CardContent>
+      </Card>
+    </Container>
   );
-} 
+};
+
+export default Patients; 

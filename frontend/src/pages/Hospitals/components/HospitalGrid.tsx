@@ -129,7 +129,7 @@ const HospitalGrid: FC<HospitalGridProps> = ({ hospitals, onViewDetails }) => {
             
             <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                <Typography variant="h6" component="h2" noWrap fontWeight="bold">
+                <Typography variant="h6" component="div" noWrap fontWeight="bold">
                   {hospital.name}
                 </Typography>
                 <Tooltip title="View Details">
