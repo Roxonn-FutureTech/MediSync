@@ -5,23 +5,25 @@ from flask_limiter.util import get_remote_address
 from marshmallow import Schema, fields, validate
 from ..services.auth_service import AuthService
 from ..services.email_service import EmailService
-from ..models.user import User, AuditLog, db
+from ..models.user import User, Role, AuditLog, db
 import jwt
 from datetime import datetime, timedelta
 
+# Create blueprint
 auth_bp = Blueprint('auth', __name__)
 
 # Initialize rate limiter
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=["100 per hour", "10 per minute"]
+    default_limits=["200 per day", "50 per hour"]
 )
 
+# Schemas
 class RegisterSchema(Schema):
     email = fields.Email(required=True)
-    username = fields.Str(required=True, validate=validate.Length(min=3))
+    username = fields.Str(required=True, validate=validate.Length(min=3, max=50))
     password = fields.Str(required=True, validate=validate.Length(min=8))
-    role = fields.Str(required=True, validate=validate.OneOf(['doctor', 'nurse', 'admin', 'receptionist']))
+    role = fields.Str(required=True)
 
 class LoginSchema(Schema):
     email = fields.Email(required=True)
@@ -49,15 +51,19 @@ def register():
             
         if User.query.filter_by(username=data['username']).first():
             return jsonify({'error': 'Username already taken'}), 400
+        
+        # Verify role exists
+        role = Role.query.filter_by(name=data['role']).first()
+        if not role:
+            return jsonify({'error': 'Invalid role specified'}), 400
             
         # Create new user
         user = User(
             email=data['email'],
-            username=data['username'],
-            active=True,
-            role=data['role']
+            username=data['username']
         )
         user.set_password(data['password'])
+        user.roles.append(role)  # Use the roles relationship
         
         db.session.add(user)
         db.session.commit()
@@ -66,21 +72,22 @@ def register():
         AuthService.log_audit(
             user.id,
             'REGISTER',
-            f'User registered with role {data["role"]}',
+            'User registered successfully',
             request.remote_addr
         )
         
         return jsonify({
             'message': 'User registered successfully',
             'user': {
+                'id': user.id,
                 'email': user.email,
                 'username': user.username,
-                'role': user.role
+                'roles': [role.name for role in user.roles]
             }
         }), 201
     except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 400
+        current_app.logger.error(f"Registration error: {str(e)}")
+        return jsonify({'error': 'An error occurred during registration'}), 500
 
 @auth_bp.route('/login', methods=['POST'])
 @limiter.limit("10 per minute")
@@ -121,34 +128,39 @@ def login():
         
         return jsonify(tokens), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.error(f"Login error: {str(e)}")
+        return jsonify({'error': 'An error occurred during login'}), 500
 
 @auth_bp.route('/2fa/enable', methods=['POST'])
 @jwt_required()
 @limiter.limit("3 per minute")
 def enable_2fa():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-    
-    if user.two_factor_enabled:
-        return jsonify({'error': '2FA is already enabled'}), 400
-    
-    secret = AuthService.generate_2fa_secret()
-    user.two_factor_secret = secret
-    user.two_factor_enabled = True
-    db.session.commit()
-    
-    AuthService.log_audit(
-        user.id,
-        '2FA_ENABLE',
-        '2FA was enabled for user',
-        request.remote_addr
-    )
-    
-    return jsonify({
-        'secret': secret,
-        'message': '2FA enabled successfully'
-    }), 200
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get_or_404(user_id)
+        
+        if user.two_factor_enabled:
+            return jsonify({'error': '2FA is already enabled'}), 400
+        
+        secret = AuthService.generate_2fa_secret()
+        user.two_factor_secret = secret
+        user.two_factor_enabled = True
+        db.session.commit()
+        
+        AuthService.log_audit(
+            user.id,
+            '2FA_ENABLE',
+            '2FA was enabled for user',
+            request.remote_addr
+        )
+        
+        return jsonify({
+            'secret': secret,
+            'message': '2FA enabled successfully'
+        }), 200
+    except Exception as e:
+        current_app.logger.error(f"2FA enable error: {str(e)}")
+        return jsonify({'error': 'An error occurred while enabling 2FA'}), 500
 
 @auth_bp.route('/password/reset/request', methods=['POST'])
 @limiter.limit("3 per minute")
@@ -212,77 +224,38 @@ def reset_password():
     return jsonify({'message': 'Password reset successful'}), 200
 
 @auth_bp.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
 @limiter.limit("10 per minute")
 def refresh_token():
-    refresh_token = request.json.get('refresh_token')
-    if not refresh_token:
-        return jsonify({'error': 'Refresh token is required'}), 400
-        
     try:
-        # Verify the refresh token
-        payload = AuthService.verify_token(refresh_token)
-        if not payload:
-            return jsonify({'error': 'Invalid refresh token'}), 401
-            
-        # Generate new access token
-        user_id = payload['user_id']
-        tokens = AuthService.create_tokens(user_id)
-        
+        # Get new tokens
+        tokens = AuthService.create_tokens(get_jwt_identity())
         return jsonify(tokens), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.error(f"Refresh token error: {str(e)}")
+        return jsonify({'error': 'An error occurred during token refresh'}), 500
 
 @auth_bp.route('/audit-logs', methods=['GET'])
 @jwt_required()
+@limiter.limit("10 per minute")
 def get_audit_logs():
-    """Get audit logs for the current user."""
-    user_id = get_jwt_identity()
-    
-    # Get query parameters for filtering
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-    action = request.args.get('action')
-    
-    # Build query
-    query = AuditLog.query.filter_by(user_id=user_id)
-    
-    if start_date:
-        try:
-            start_date_obj = datetime.fromisoformat(start_date)
-            query = query.filter(AuditLog.timestamp >= start_date_obj)
-        except ValueError:
-            pass
-            
-    if end_date:
-        try:
-            end_date_obj = datetime.fromisoformat(end_date)
-            query = query.filter(AuditLog.timestamp <= end_date_obj)
-        except ValueError:
-            pass
-            
-    if action:
-        query = query.filter(AuditLog.action == action)
-    
-    # Get paginated results
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
-    
-    logs = query.order_by(AuditLog.timestamp.desc()).paginate(
-        page=page, per_page=per_page
-    )
-    
-    return jsonify({
-        'logs': [{
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get_or_404(user_id)
+        
+        # Get audit logs for the user
+        logs = AuditLog.query.filter_by(user_id=user.id).order_by(AuditLog.timestamp.desc()).all()
+        
+        return jsonify([{
             'id': log.id,
             'action': log.action,
             'details': log.details,
             'ip_address': log.ip_address,
             'timestamp': log.timestamp.isoformat()
-        } for log in logs.items],
-        'total': logs.total,
-        'pages': logs.pages,
-        'current_page': logs.page
-    }), 200
+        } for log in logs]), 200
+    except Exception as e:
+        current_app.logger.error(f"Audit logs error: {str(e)}")
+        return jsonify({'error': 'An error occurred while fetching audit logs'}), 500
 
 @auth_bp.route('/audit-logs/actions', methods=['GET'])
 @jwt_required()

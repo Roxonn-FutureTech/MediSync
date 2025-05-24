@@ -96,25 +96,14 @@ class AuthService:
     
     @classmethod
     def create_tokens(cls, user_id: int) -> dict:
-        """Create access and refresh tokens using RS256."""
-        cls.load_keys()
-        
-        access_token = jwt.encode(
-            {
-                'user_id': user_id,
-                'exp': datetime.utcnow() + current_app.config['JWT_ACCESS_TOKEN_EXPIRES']
-            },
-            cls._private_key,
-            algorithm='RS256'
+        """Create access and refresh tokens."""
+        access_token = create_access_token(
+            identity=str(user_id),  # Convert to string
+            fresh=True
         )
         
-        refresh_token = jwt.encode(
-            {
-                'user_id': user_id,
-                'exp': datetime.utcnow() + current_app.config['JWT_REFRESH_TOKEN_EXPIRES']
-            },
-            cls._private_key,
-            algorithm='RS256'
+        refresh_token = create_refresh_token(
+            identity=str(user_id)  # Convert to string
         )
         
         return {

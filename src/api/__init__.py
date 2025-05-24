@@ -4,11 +4,16 @@ MediSync API module
 
 # This file makes the api directory a Python package 
 
-from flask import Flask
+from flask import Flask, Blueprint
 from flask_cors import CORS
-from .models.user import db
-from .routes.auth import auth_bp
+from flask_sqlalchemy import SQLAlchemy
 import os
+
+# Initialize SQLAlchemy
+db = SQLAlchemy()
+
+# Import routes after db initialization to avoid circular imports
+from .routes.auth import auth_bp
 
 def create_app():
     app = Flask(__name__)

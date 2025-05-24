@@ -1,5 +1,16 @@
 import os
 from datetime import timedelta
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+def _load_key(key_str):
+    """Load a key string, handling newlines properly."""
+    if not key_str:
+        return None
+    # Replace literal '\n' with actual newlines and strip any extra whitespace
+    return key_str.replace('\\n', '\n').strip()
 
 class Config:
     # Required environment variables
@@ -23,6 +34,14 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
     JWT_ALGORITHM = 'RS256'  # Using asymmetric key signing
+    JWT_PUBLIC_KEY = _load_key(os.environ.get('JWT_PUBLIC_KEY'))
+    JWT_PRIVATE_KEY = _load_key(os.environ.get('JWT_PRIVATE_KEY'))
+    JWT_TOKEN_LOCATION = ['headers']
+    JWT_HEADER_NAME = 'Authorization'
+    JWT_HEADER_TYPE = 'Bearer'
+    
+    # Frontend URL
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
     
     # Security settings
     SECURITY_REGISTERABLE = True
