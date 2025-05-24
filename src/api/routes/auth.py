@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from marshmallow import Schema, fields, validate
 from ..services.auth_service import AuthService
 from ..services.email_service import EmailService
@@ -9,10 +11,17 @@ from datetime import datetime, timedelta
 
 auth_bp = Blueprint('auth', __name__)
 
+# Initialize rate limiter
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["100 per hour", "10 per minute"]
+)
+
 class RegisterSchema(Schema):
     email = fields.Email(required=True)
     username = fields.Str(required=True, validate=validate.Length(min=3))
     password = fields.Str(required=True, validate=validate.Length(min=8))
+    role = fields.Str(required=True, validate=validate.OneOf(['doctor', 'nurse', 'admin', 'receptionist']))
 
 class LoginSchema(Schema):
     email = fields.Email(required=True)
@@ -28,6 +37,7 @@ class AuditLogSchema(Schema):
     timestamp = fields.DateTime()
 
 @auth_bp.route('/register', methods=['POST'])
+@limiter.limit("5 per minute")
 def register():
     try:
         schema = RegisterSchema()
@@ -44,92 +54,78 @@ def register():
         user = User(
             email=data['email'],
             username=data['username'],
-            active=True
+            active=True,
+            role=data['role']
         )
         user.set_password(data['password'])
         
         db.session.add(user)
         db.session.commit()
         
+        # Log the registration
+        AuthService.log_audit(
+            user.id,
+            'REGISTER',
+            f'User registered with role {data["role"]}',
+            request.remote_addr
+        )
+        
         return jsonify({
             'message': 'User registered successfully',
             'user': {
                 'email': user.email,
-                'username': user.username
+                'username': user.username,
+                'role': user.role
             }
         }), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
-@auth_bp.route('/debug/users', methods=['GET'])
-def debug_users():
-    """Debug endpoint to list all users. REMOVE IN PRODUCTION."""
-    if not current_app.debug:
-        return jsonify({'error': 'Not available in production'}), 403
-    
-    users = User.query.all()
-    user_list = [{
-        'id': user.id,
-        'email': user.email,
-        'username': user.username,
-        'active': user.active,
-        'created_at': user.created_at.isoformat() if user.created_at else None,
-        'last_login_at': user.last_login_at.isoformat() if user.last_login_at else None
-    } for user in users]
-    
-    return jsonify({
-        'user_count': len(user_list),
-        'users': user_list
-    }), 200
-
 @auth_bp.route('/login', methods=['POST'])
+@limiter.limit("10 per minute")
 def login():
     try:
-        data = request.get_json()
-        print("Login attempt with data:", data)  # Debug print
+        schema = LoginSchema()
+        data = schema.load(request.json)
         
         user = User.query.filter_by(email=data['email']).first()
-        print("Found user:", user)  # Debug print
         
         if not user or not user.check_password(data['password']):
-            print("Invalid credentials")  # Debug print
             return jsonify({'error': 'Invalid email or password'}), 401
         
-        print("Password check passed")  # Debug print
+        # Check 2FA if enabled
+        if user.two_factor_enabled:
+            if not data.get('two_factor_token'):
+                return jsonify({
+                    'message': '2FA token required',
+                    'requires_2fa': True
+                }), 200
+                
+            if not AuthService.verify_2fa_token(user.two_factor_secret, data['two_factor_token']):
+                return jsonify({'error': 'Invalid 2FA token'}), 401
         
         # Generate tokens
-        access_token = jwt.encode(
-            {
-                'user_id': user.id,
-                'email': user.email,
-                'exp': datetime.utcnow() + timedelta(hours=1)
-            },
-            current_app.config['SECRET_KEY'],
-            algorithm='HS256'
+        tokens = AuthService.create_tokens(user.id)
+        
+        # Update login info
+        AuthService.update_login_info(user, request.remote_addr)
+        
+        # Log the login
+        AuthService.log_audit(
+            user.id,
+            'LOGIN',
+            'User logged in successfully',
+            request.remote_addr
         )
         
-        refresh_token = jwt.encode(
-            {
-                'user_id': user.id,
-                'exp': datetime.utcnow() + timedelta(days=30)
-            },
-            current_app.config['SECRET_KEY'],
-            algorithm='HS256'
-        )
-        
-        print("Tokens generated successfully")  # Debug print
-        
-        return jsonify({
-            'access_token': access_token,
-            'refresh_token': refresh_token
-        }), 200
+        return jsonify(tokens), 200
     except Exception as e:
-        print("Login error:", str(e))  # Debug print
         return jsonify({'error': str(e)}), 500
 
 @auth_bp.route('/2fa/enable', methods=['POST'])
 @jwt_required()
+@limiter.limit("3 per minute")
 def enable_2fa():
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
@@ -155,6 +151,7 @@ def enable_2fa():
     }), 200
 
 @auth_bp.route('/password/reset/request', methods=['POST'])
+@limiter.limit("3 per minute")
 def request_password_reset():
     email = request.json.get('email')
     if not email:
@@ -165,6 +162,14 @@ def request_password_reset():
         try:
             token = AuthService.generate_password_reset_token(user)
             EmailService.send_password_reset_email(user.email, token)
+            
+            AuthService.log_audit(
+                user.id,
+                'PASSWORD_RESET_REQUEST',
+                'Password reset was requested',
+                request.remote_addr
+            )
+            
             return jsonify({
                 'message': 'Password reset instructions have been sent to your email'
             }), 200
@@ -180,6 +185,7 @@ def request_password_reset():
     }), 200
 
 @auth_bp.route('/password/reset/verify', methods=['POST'])
+@limiter.limit("3 per minute")
 def reset_password():
     token = request.json.get('token')
     new_password = request.json.get('new_password')
@@ -191,7 +197,7 @@ def reset_password():
     if not user:
         return jsonify({'error': 'Invalid or expired token'}), 400
     
-    user.password = AuthService.hash_password(new_password)
+    user.set_password(new_password)
     user.reset_password_token = None
     user.reset_password_expires = None
     db.session.commit()
@@ -205,35 +211,78 @@ def reset_password():
     
     return jsonify({'message': 'Password reset successful'}), 200
 
+@auth_bp.route('/refresh', methods=['POST'])
+@limiter.limit("10 per minute")
+def refresh_token():
+    refresh_token = request.json.get('refresh_token')
+    if not refresh_token:
+        return jsonify({'error': 'Refresh token is required'}), 400
+        
+    try:
+        # Verify the refresh token
+        payload = AuthService.verify_token(refresh_token)
+        if not payload:
+            return jsonify({'error': 'Invalid refresh token'}), 401
+            
+        # Generate new access token
+        user_id = payload['user_id']
+        tokens = AuthService.create_tokens(user_id)
+        
+        return jsonify(tokens), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @auth_bp.route('/audit-logs', methods=['GET'])
 @jwt_required()
 def get_audit_logs():
     """Get audit logs for the current user."""
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
     
     # Get query parameters for filtering
-    action = request.args.get('action')
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
+    action = request.args.get('action')
     
-    # Base query
+    # Build query
     query = AuditLog.query.filter_by(user_id=user_id)
     
-    # Apply filters if provided
-    if action:
-        query = query.filter_by(action=action)
     if start_date:
-        query = query.filter(AuditLog.timestamp >= start_date)
+        try:
+            start_date_obj = datetime.fromisoformat(start_date)
+            query = query.filter(AuditLog.timestamp >= start_date_obj)
+        except ValueError:
+            pass
+            
     if end_date:
-        query = query.filter(AuditLog.timestamp <= end_date)
+        try:
+            end_date_obj = datetime.fromisoformat(end_date)
+            query = query.filter(AuditLog.timestamp <= end_date_obj)
+        except ValueError:
+            pass
+            
+    if action:
+        query = query.filter(AuditLog.action == action)
     
-    # Order by timestamp descending (most recent first)
-    logs = query.order_by(AuditLog.timestamp.desc()).all()
+    # Get paginated results
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
     
-    # Serialize the logs
-    schema = AuditLogSchema(many=True)
-    return jsonify(schema.dump(logs)), 200
+    logs = query.order_by(AuditLog.timestamp.desc()).paginate(
+        page=page, per_page=per_page
+    )
+    
+    return jsonify({
+        'logs': [{
+            'id': log.id,
+            'action': log.action,
+            'details': log.details,
+            'ip_address': log.ip_address,
+            'timestamp': log.timestamp.isoformat()
+        } for log in logs.items],
+        'total': logs.total,
+        'pages': logs.pages,
+        'current_page': logs.page
+    }), 200
 
 @auth_bp.route('/audit-logs/actions', methods=['GET'])
 @jwt_required()
@@ -243,8 +292,9 @@ def get_audit_log_actions():
         'REGISTER',
         'LOGIN',
         '2FA_ENABLE',
+        'PASSWORD_RESET_REQUEST',
         'PASSWORD_RESET',
-        # Add any other actions here
+        'PROFILE_UPDATE'
     ]
     return jsonify(actions), 200
 
