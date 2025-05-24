@@ -1,130 +1,129 @@
-# MediSync - Emergency Medical Response System
+# MediSync Authentication System
 
-MediSync is a comprehensive emergency medical response and hospital coordination system designed to streamline emergency response operations and improve patient care outcomes.
+A secure authentication system for medical professionals and administrators.
 
-## Project Overview
+## Features
 
-MediSync is built to address the critical need for efficient emergency medical response coordination. The system connects hospitals, emergency responders, and medical staff in real-time, enabling faster response times and better resource allocation.
+- JWT-based authentication
+- Role-based access control
+- Two-factor authentication (2FA)
+- Password reset functionality
+- Secure session management
+- Comprehensive audit logging
+- CORS protection
 
-## Key Features
+## Tech Stack
 
-### Real-time Emergency Response
-- Instant emergency case tracking and management
-- Automated resource allocation
-- Real-time status updates and notifications
-- GPS-based routing and navigation
-
-### Hospital Coordination
-- Live bed availability tracking
-- Department and specialty management
-- Resource sharing between facilities
-- Patient transfer coordination
-
-### Staff Management
-- Real-time staff availability tracking
-- Shift management and scheduling
-- Expertise-based assignment
-- Performance monitoring
-
-### Analytics and Reporting
-- Response time analytics
-- Resource utilization reports
-- Performance metrics
-- Trend analysis and predictions
-
-## System Architecture
-
-The project is structured into two main components:
-
-### Frontend (/frontend)
-- Modern Progressive Web Application (PWA)
-- Built with React, TypeScript, and Material-UI
-- Real-time updates and offline support
-- Responsive design for all devices
-- See [Frontend README](frontend/README.md) for details
-
-### Backend (/backend)
-- RESTful API service
-- Real-time data processing
-- Secure authentication and authorization
-- Scalable microservices architecture
-- Database management and optimization
-
-## Technology Stack
+### Backend
+- Python 3.11+
+- Flask
+- SQLAlchemy
+- Flask-JWT-Extended
+- Flask-Security-Too
+- Flask-Mail
+- PyOTP for 2FA
 
 ### Frontend
-- React 18 with TypeScript
-- Material-UI v5
-- Chart.js for data visualization
-- Leaflet for mapping
-- PWA capabilities
+- React 18
+- TypeScript
+- Material-UI
+- Formik & Yup
+- Axios
+- React Router
 
-### Backend (Planned)
-- Node.js/Express.js
-- PostgreSQL
-- Redis for caching
-- WebSocket for real-time updates
-- Docker containerization
+## Setup
 
-## Getting Started
+### Backend Setup
 
-1. Clone the repository:
+1. Create and activate virtual environment:
    ```bash
-   git clone https://github.com/yourusername/MediSync.git
-   cd MediSync
+   cd src
+   python -m venv venv
+   # On Windows:
+   .\venv\Scripts\activate
+   # On Unix:
+   source venv/bin/activate
    ```
 
-2. Set up the frontend:
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Configure environment variables:
+   - Copy `.env.example` to `.env`
+   - Update the values in `.env` with your configuration
+
+4. Run the backend server:
+   ```bash
+   python app.py
+   ```
+
+### Frontend Setup
+
+1. Install dependencies:
    ```bash
    cd frontend
    npm install
-   npm run dev
    ```
 
-3. Set up the backend (coming soon):
+2. Configure environment variables:
+   - Copy `.env.example` to `.env`
+   - Update the API URL if needed
+
+3. Run the development server:
    ```bash
-   cd backend
-   npm install
    npm run dev
    ```
 
-## Development Roadmap
+## API Endpoints
 
-### Phase 1 - Frontend Development (Current)
-- [x] Project setup and configuration
-- [x] UI component development
-- [x] PWA implementation
-- [x] Real-time updates
-- [ ] Testing and optimization
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `POST /api/auth/2fa/enable` - Enable 2FA
+- `POST /api/auth/password/reset/request` - Request password reset
+- `POST /api/auth/password/reset/verify` - Reset password
 
-### Phase 2 - Backend Development
-- [ ] API development
-- [ ] Database setup
-- [ ] Authentication system
-- [ ] Real-time communication
-- [ ] Testing and documentation
+## Security Features
 
-### Phase 3 - Integration and Enhancement
-- [ ] Frontend-backend integration
-- [ ] Performance optimization
-- [ ] Security hardening
-- [ ] User acceptance testing
-- [ ] Deployment preparation
+1. **Password Security**
+   - Bcrypt hashing
+   - Minimum length requirement
+   - Complexity requirements
 
-## Contributing
+2. **Two-Factor Authentication**
+   - TOTP-based (Time-based One-Time Password)
+   - QR code for easy setup
+   - Backup codes support
 
-We welcome contributions to the MediSync project! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+3. **Session Management**
+   - JWT with refresh tokens
+   - Token expiration
+   - Secure cookie handling
 
-### Development Process
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+4. **Audit Logging**
+   - Login attempts
+   - Password changes
+   - 2FA operations
+   - Security-related actions
+
+## Development
+
+### Running Tests
+```bash
+# Backend tests
+cd src
+python -m pytest
+
+# Frontend tests
+cd frontend
+npm test
+```
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Contact
 
