@@ -17,7 +17,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11' # or whatever version you're using
+        python-version: '3.11'
 
     - name: Install dependencies
       run: |
@@ -25,11 +25,12 @@ jobs:
         source venv/bin/activate
         pip install --upgrade pip
         pip install -r requirements.txt
+        pip install pytest pytest-flask pytest-cov
 
     - name: Run Tests
       run: |
         source venv/bin/activate
-        python -m unittest discover tests
+        pytest tests/ -v
 
     - name: Run API Server (optional for testing)
       if: false  # Change to true if you want to deploy/run the server
