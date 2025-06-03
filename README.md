@@ -1,140 +1,140 @@
-# MediSync - Emergency Medical Response System
+# MediSync - Emergency Medical Services Portal
 
-MediSync is a comprehensive emergency medical response and hospital coordination system designed to streamline emergency response operations and improve patient care outcomes.
+A secure, HIPAA-compliant emergency medical services portal built with Flask and React.
 
-## Project Overview
+## Features
 
-MediSync is built to address the critical need for efficient emergency medical response coordination. The system connects hospitals, emergency responders, and medical staff in real-time, enabling faster response times and better resource allocation.
+- 🔒 HIPAA-compliant security measures
+- 🏥 Hospital management system
+- 🚑 Emergency response coordination
+- 📊 Real-time monitoring
+- 🗺️ Geographic mapping
+- 👥 Staff management
+- 📱 Progressive Web App (PWA)
 
-## Key Features
+## Security Features
 
-### Real-time Emergency Response
-- Instant emergency case tracking and management
-- Automated resource allocation
-- Real-time status updates and notifications
-- GPS-based routing and navigation
+- End-to-end encryption
+- SSL/TLS encryption
+- Secure session handling
+- CSRF protection
+- XSS protection
+- SQL injection prevention
+- Audit logging
+- Password policy enforcement
+- Data encryption at rest
 
-### Hospital Coordination
-- Live bed availability tracking
-- Department and specialty management
-- Resource sharing between facilities
-- Patient transfer coordination
+## Prerequisites
 
-### Staff Management
-- Real-time staff availability tracking
-- Shift management and scheduling
-- Expertise-based assignment
-- Performance monitoring
+- Python 3.8+
+- Node.js 14+
+- OpenSSL
+- SQLite (for development) or PostgreSQL (for production)
 
-### Analytics and Reporting
-- Response time analytics
-- Resource utilization reports
-- Performance metrics
-- Trend analysis and predictions
-
-## System Architecture
-
-The project is structured into two main components:
-
-### Frontend (/frontend)
-- Modern Progressive Web Application (PWA)
-- Built with React, TypeScript, and Material-UI
-- Real-time updates and offline support
-- Responsive design for all devices
-- See [Frontend README](frontend/README.md) for details
-
-### Backend (/backend)
-- RESTful API service
-- Real-time data processing
-- Secure authentication and authorization
-- Scalable microservices architecture
-- Database management and optimization
-
-## Technology Stack
-
-### Frontend
-- React 18 with TypeScript
-- Material-UI v5
-- Chart.js for data visualization
-- Leaflet for mapping
-- PWA capabilities
-
-### Backend (Planned)
-- Node.js/Express.js
-- PostgreSQL
-- Redis for caching
-- WebSocket for real-time updates
-- Docker containerization
-
-## Getting Started
+## Installation
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/MediSync.git
-   cd MediSync
-   ```
+```bash
+git clone https://github.com/yourusername/medisync.git
+cd medisync
+```
 
-2. Set up the frontend:
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
+2. Create and activate a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-3. Set up the backend (coming soon):
-   ```bash
-   cd backend
-   npm install
-   npm run dev
-   ```
+3. Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-## Development Roadmap
+4. Install frontend dependencies:
+```bash
+cd frontend
+npm install
+cd ..
+```
 
-### Phase 1 - Frontend Development (Current)
-- [x] Project setup and configuration
-- [x] UI component development
-- [x] PWA implementation
-- [x] Real-time updates
-- [ ] Testing and optimization
+5. Create necessary directories:
+```bash
+mkdir -p logs certs instance
+```
 
-### Phase 2 - Backend Development
-- [ ] API development
-- [ ] Database setup
-- [ ] Authentication system
-- [ ] Real-time communication
-- [ ] Testing and documentation
+6. Generate SSL certificates (for development):
+```bash
+python scripts/generate_cert.py
+```
 
-### Phase 3 - Integration and Enhancement
-- [ ] Frontend-backend integration
-- [ ] Performance optimization
-- [ ] Security hardening
-- [ ] User acceptance testing
-- [ ] Deployment preparation
+7. Create a `.env` file and configure your environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+8. Initialize the database:
+```bash
+flask db upgrade
+```
+
+## Running the Application
+
+1. Start the backend server:
+```bash
+flask run --cert=certs/cert.pem --key=certs/key.pem
+```
+
+2. Start the frontend development server:
+```bash
+cd frontend
+npm run dev
+```
+
+3. Access the application at `https://localhost:5000`
+
+## Development
+
+- Backend API: `src/api/`
+- Frontend: `frontend/src/`
+- Database migrations: `migrations/`
+- Configuration: `src/api/config/`
+- Tests: `tests/`
+
+## Testing
+
+Run the test suite:
+```bash
+python -m pytest
+```
+
+Test the API endpoints:
+```bash
+python scripts/test_api.py
+```
+
+## Security Considerations
+
+1. Replace all default keys and secrets in production
+2. Use proper SSL certificates in production
+3. Configure proper firewall rules
+4. Regular security audits
+5. Monitor logs for suspicious activity
 
 ## Contributing
 
-We welcome contributions to the MediSync project! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### Development Process
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Contact
+## Support
 
-Project Maintainer: [Your Name]
-Email: [your.email@example.com]
-Project Link: [https://github.com/yourusername/MediSync](https://github.com/yourusername/MediSync)
+For support, please open an issue in the GitHub repository or contact the development team.
 
 ## Acknowledgments
 
 - Emergency medical professionals for their input and feedback
 - Open source community for various tools and libraries
 - Contributors and testers
-# emergency-med-portal 
