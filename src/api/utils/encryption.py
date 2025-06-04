@@ -3,14 +3,14 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import base64
 import os
-from ..config.security import SecurityConfig
 from sqlalchemy.types import TypeDecorator, String
+import secrets
 
 class EncryptionService:
     def __init__(self, key=None):
-        """Initialize encryption service with a key"""
+        """Initialize encryption service with a key or generate one"""
         if key is None:
-            key = SecurityConfig.DATABASE_ENCRYPTION_KEY
+            key = os.getenv('DATABASE_ENCRYPTION_KEY', secrets.token_hex(32))
         self.fernet = Fernet(self._get_or_create_key(key))
     
     def _get_or_create_key(self, key):
@@ -56,18 +56,12 @@ class EncryptedField(TypeDecorator):
         """Encrypt value before storing in database"""
         if value is None:
             return None
-        try:
-            encrypted = self.encryption_service.encrypt(value)
-            return encrypted.decode('utf-8')  # Store as string in DB
-        except Exception as e:
-            raise ValueError(f"Error encrypting value: {str(e)}")
+        encrypted = self.encryption_service.encrypt(value)
+        return encrypted.decode('utf-8')  # Store as string in DB
 
     def process_result_value(self, value, dialect):
         """Decrypt value retrieved from database"""
         if value is None:
             return None
-        try:
-            decrypted = self.encryption_service.decrypt(value.encode('utf-8'))
-            return decrypted.decode('utf-8')
-        except Exception as e:
-            raise ValueError(f"Error decrypting value: {str(e)}") 
+        decrypted = self.encryption_service.decrypt(value.encode('utf-8'))
+        return decrypted.decode('utf-8') 

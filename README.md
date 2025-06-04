@@ -1,125 +1,100 @@
-# MediSync - Emergency Medical Services Portal
+# MediSync
 
-A secure, HIPAA-compliant emergency medical services portal built with Flask and React.
+MediSync is a comprehensive Emergency Medical Services Portal that helps coordinate and manage emergency medical responses, hospital resources, and patient care.
 
 ## Features
 
-- 🔒 HIPAA-compliant security measures
-- 🏥 Hospital management system
-- 🚑 Emergency response coordination
-- 📊 Real-time monitoring
-- 🗺️ Geographic mapping
-- 👥 Staff management
-- 📱 Progressive Web App (PWA)
+- Real-time emergency response coordination
+- Hospital resource management
+- Patient tracking and medical history
+- Staff management and scheduling
+- Analytics and reporting
+- Interactive map visualization
+- PWA support for mobile access
 
-## Security Features
+## Tech Stack
 
-- End-to-end encryption
-- SSL/TLS encryption
-- Secure session handling
-- CSRF protection
-- XSS protection
-- SQL injection prevention
-- Audit logging
-- Password policy enforcement
-- Data encryption at rest
-
-## Prerequisites
-
+### Backend
 - Python 3.8+
-- Node.js 14+
-- OpenSSL
-- SQLite (for development) or PostgreSQL (for production)
+- Flask
+- SQLAlchemy
+- Flask-Admin
+- Flask-Login
+- Flask-Limiter
+- Flask-Caching
 
-## Installation
+### Frontend
+- React 18
+- TypeScript
+- Material-UI
+- Chart.js
+- Leaflet
+- Vite
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/medisync.git
-cd medisync
-```
+## Getting Started
 
-2. Create and activate a virtual environment:
+### Prerequisites
+- Python 3.8 or higher
+- Node.js 16 or higher
+- npm or yarn
+
+### Backend Setup
+
+1. Create a virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. Install Python dependencies:
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Install frontend dependencies:
+3. Initialize the database:
+```bash
+python init_db.py
+```
+
+4. Start the backend server:
+```bash
+flask run
+```
+
+### Frontend Setup
+
+1. Navigate to the frontend directory:
 ```bash
 cd frontend
+```
+
+2. Install dependencies:
+```bash
 npm install
-cd ..
+# or
+yarn install
 ```
 
-5. Create necessary directories:
+3. Start the development server:
 ```bash
-mkdir -p logs certs instance
-```
-
-6. Generate SSL certificates (for development):
-```bash
-python scripts/generate_cert.py
-```
-
-7. Create a `.env` file and configure your environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-8. Initialize the database:
-```bash
-flask db upgrade
-```
-
-## Running the Application
-
-1. Start the backend server:
-```bash
-flask run --cert=certs/cert.pem --key=certs/key.pem
-```
-
-2. Start the frontend development server:
-```bash
-cd frontend
 npm run dev
+# or
+yarn dev
 ```
 
-3. Access the application at `https://localhost:5000`
+## Environment Variables
 
-## Development
+Create a `.env` file in the root directory with the following variables:
 
-- Backend API: `src/api/`
-- Frontend: `frontend/src/`
-- Database migrations: `migrations/`
-- Configuration: `src/api/config/`
-- Tests: `tests/`
-
-## Testing
-
-Run the test suite:
-```bash
-python -m pytest
+```env
+FLASK_ENV=development
+SECRET_KEY=your-secret-key
+DATABASE_URI=sqlite:///./instance/emergency_portal.db
 ```
 
-Test the API endpoints:
-```bash
-python scripts/test_api.py
-```
+## API Documentation
 
-## Security Considerations
-
-1. Replace all default keys and secrets in production
-2. Use proper SSL certificates in production
-3. Configure proper firewall rules
-4. Regular security audits
-5. Monitor logs for suspicious activity
+API documentation is available at `/docs` when running the backend server.
 
 ## Contributing
 
@@ -129,12 +104,6 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
+## Security
 
-For support, please open an issue in the GitHub repository or contact the development team.
-
-## Acknowledgments
-
-- Emergency medical professionals for their input and feedback
-- Open source community for various tools and libraries
-- Contributors and testers
+For security concerns, please email security@medisync.com

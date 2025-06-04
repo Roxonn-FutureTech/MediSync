@@ -7,11 +7,25 @@ import secrets
 load_dotenv()
 
 # Get absolute path for logs
-LOG_DIR = os.path.abspath(os.getenv('LOG_DIR', 'logs'))
+LOG_DIR = os.path.abspath(os.getenv('LOG_DIR', os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'logs')))
 
 class SecurityConfig:
-    # Generate a secure key for database encryption
-    DATABASE_ENCRYPTION_KEY = os.getenv('DATABASE_ENCRYPTION_KEY', secrets.token_urlsafe(32))
+    """Security configuration class for HIPAA-compliant settings."""
+    
+    # Database encryption key configuration
+    DATABASE_ENCRYPTION_KEY = os.getenv('DATABASE_ENCRYPTION_KEY')
+    
+    @classmethod
+    def get_database_encryption_key(cls):
+        """Get database encryption key with proper validation."""
+        key = cls.DATABASE_ENCRYPTION_KEY
+        if not key:
+            if os.getenv('FLASK_ENV') == 'development':
+                # Generate key for development only
+                return secrets.token_urlsafe(32)
+            else:
+                raise ValueError("DATABASE_ENCRYPTION_KEY must be set in production")
+        return key
     
     # SSL/TLS Configuration
     SSL_CERT_PATH = os.getenv('SSL_CERT_PATH', 'certs/cert.pem')
@@ -59,14 +73,14 @@ class SecurityConfig:
         'handlers': {
             'security_file': {
                 'class': 'logging.handlers.RotatingFileHandler',
-                'filename': 'logs/security.log',
+                'filename': os.path.join(LOG_DIR, 'security.log'),
                 'maxBytes': 10485760,  # 10MB
                 'backupCount': 5,
                 'formatter': 'detailed',
             },
             'access_file': {
                 'class': 'logging.handlers.RotatingFileHandler',
-                'filename': 'logs/access.log',
+                'filename': os.path.join(LOG_DIR, 'access.log'),
                 'maxBytes': 10485760,  # 10MB
                 'backupCount': 5,
                 'formatter': 'detailed',
@@ -75,11 +89,11 @@ class SecurityConfig:
         'loggers': {
             'security': {
                 'handlers': ['security_file'],
-                'level': 'INFO',
+                'level': os.getenv('SECURITY_LOG_LEVEL', 'INFO'),
             },
             'access': {
                 'handlers': ['access_file'],
-                'level': 'INFO',
+                'level': os.getenv('ACCESS_LOG_LEVEL', 'INFO'),
             }
         }
     } 
