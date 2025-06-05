@@ -68,10 +68,10 @@ import {
   Help as HelpIcon,
   MonitorHeartOutlined,
 } from '@mui/icons-material';
-import { ColorModeContext } from '../../context/ColorModeContext';
+import { ColorModeContext } from '../../contexts/ColorModeContext';
 import { motion } from 'framer-motion';
 import { styled, CSSObject } from '@mui/material/styles';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import GlobalSearch from '../GlobalSearch';
 
 const drawerWidth = 260;

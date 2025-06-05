@@ -10,6 +10,7 @@ from flask_login import LoginManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_caching import Cache
+from flask_admin import Admin
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -17,6 +18,7 @@ migrate = Migrate()
 login_manager = LoginManager()
 cache = Cache()
 limiter = Limiter(key_func=get_remote_address)
+admin = Admin(name='MediSync Admin', template_mode='bootstrap4')
 
 def init_limiter(app):
     return Limiter(
@@ -36,6 +38,7 @@ def init_extensions(app):
     login_manager.init_app(app)
     cache.init_app(app)
     limiter.init_app(app)
+    admin.init_app(app)
     return init_limiter(app)
 
 def init_login_manager(app):

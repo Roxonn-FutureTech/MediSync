@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   plugins: [
     react(),
     VitePWA({
@@ -12,55 +13,35 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: 'MediSync',
         short_name: 'MediSync',
+        description: 'Emergency Medical Services Portal',
         theme_color: '#ffffff',
         icons: [
           {
-            src: '/icons/android-chrome-192x192.png',
+            src: 'icons/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/icons/android-chrome-512x512.png',
+            src: 'icons/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
+          },
+          {
+            src: 'icons/pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       }
     })
   ],
-  define: {
-    'process.env.NODE_ENV': JSON.stringify(mode),
-  },
-  build: {
-    target: 'esnext',
-    sourcemap: mode !== 'production',
-    chunkSizeWarningLimit: 1000,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'mui-vendor': ['@mui/material', '@mui/icons-material'],
-          'chart-vendor': ['chart.js', 'react-chartjs-2'],
-          'map-vendor': ['leaflet', 'react-leaflet']
-        }
-      }
-    },
-    minify: mode === 'production',
-    terserOptions: mode === 'production' ? {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
-    } : undefined
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
   },
   server: {
-    port: 0,
-    strictPort: false,
-    host: true,
-    hmr: {
-      protocol: 'ws',
-      host: 'localhost',
-    },
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
@@ -69,7 +50,18 @@ export default defineConfig(({ mode }) => ({
       }
     }
   },
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', '@mui/material']
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@mui/material', '@mui/icons-material'],
+          charts: ['chart.js', 'react-chartjs-2'],
+          maps: ['leaflet', 'react-leaflet']
+        }
+      }
+    }
   }
-}))
+})

@@ -50,7 +50,7 @@ import {
   CloudUpload as CloudIcon,
   BugReport as BugIcon,
 } from '@mui/icons-material';
-import { ColorModeContext } from '../../context/ColorModeContext';
+import { ColorModeContext } from '../../contexts/ColorModeContext';
 
 interface TabPanelProps {
   children?: React.ReactNode;

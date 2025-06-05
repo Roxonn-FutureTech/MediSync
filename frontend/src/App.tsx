@@ -1,42 +1,51 @@
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { routes } from './routes';
-import { ColorModeProvider } from './context/ColorModeContext';
-import { CssBaseline } from '@mui/material';
-import { AuthProvider } from './context/AuthContext';
-import ErrorBoundary from './components/ErrorBoundary';
+import AuthenticatedLayout from './components/AuthenticatedLayout';
+import RouterErrorBoundary from './components/ErrorBoundary/RouterErrorBoundary';
+import AppProvider from './providers/AppProvider';
+import { AuthProvider } from './contexts/AuthContext';
 
-// Create a root-level component that wraps the application with AuthProvider
-const AppRoot = () => {
-  return (
-    <AuthProvider>
-      <Outlet />
-    </AuthProvider>
-  );
-};
+// Get auth routes
+const authRoutes = routes.filter(route => ['login', 'register'].includes(route.path || ''));
+const protectedRoutes = routes.filter(route => !['login', 'register'].includes(route.path || ''));
 
-function App() {
-  // Create router configuration with AppRoot as the root element
-  const router = createBrowserRouter([
+// Create router configuration with future flags
+const router = createBrowserRouter(
+  [
+    {
+      path: '/login',
+      element: <AuthProvider>{authRoutes.find(route => route.path === 'login')?.element}</AuthProvider>,
+      errorElement: <RouterErrorBoundary />,
+    },
+    {
+      path: '/register',
+      element: <AuthProvider>{authRoutes.find(route => route.path === 'register')?.element}</AuthProvider>,
+      errorElement: <RouterErrorBoundary />,
+    },
     {
       path: '/',
-      element: <AppRoot />,
-      errorElement: <ErrorBoundary />,
-      children: routes,
+      element: <AuthenticatedLayout />,
+      errorElement: <RouterErrorBoundary />,
+      children: protectedRoutes,
     },
-  ], {
-    future: {
-      v7_relativeSplatPath: true,
-      v7_startTransition: true,
-      v7_fetcherPersist: true,
-      v7_normalizeFormMethod: true
+    {
+      path: '*',
+      element: <Navigate to="/" replace />,
     }
-  });
+  ],
+  {
+    future: {
+      v7_startTransition: true,
+      v7_relativeSplatPath: true
+    }
+  }
+);
 
+function App() {
   return (
-    <ColorModeProvider>
-      <CssBaseline />
+    <AppProvider>
       <RouterProvider router={router} />
-    </ColorModeProvider>
+    </AppProvider>
   );
 }
 

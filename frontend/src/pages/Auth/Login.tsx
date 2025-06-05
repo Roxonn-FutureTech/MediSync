@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { Visibility, VisibilityOff, Email, Lock } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import logo from '../../assets/logo.png';
 
 const Login: React.FC = () => {

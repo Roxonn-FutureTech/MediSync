@@ -1,8 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
-import Layout from '../components/Layout';
 import { Box, CircularProgress } from '@mui/material';
-import { useAuth } from '../context/AuthContext';
+import AuthRoute from '../components/AuthRoute';
 
 // Lazy load components
 const Dashboard = lazy(() => import('../pages/Dashboard'));
@@ -28,118 +27,56 @@ const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
   </Suspense>
 );
 
-// Protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth();
-  
-  if (loading) {
-    return (
-      <Box sx={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  return <>{children}</>;
-};
-
-// Public route that redirects to dashboard if already authenticated
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth();
-  
-  if (loading) {
-    return (
-      <Box sx={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-  
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-  
-  return <>{children}</>;
-};
-
-// Define routes as a constant to avoid Fast Refresh issues
+// Define routes
 const routes: RouteObject[] = [
   {
     path: 'login',
-    element: (
-      <PublicRoute>
-        <SuspenseWrapper><Login /></SuspenseWrapper>
-      </PublicRoute>
-    ),
+    element: <SuspenseWrapper><AuthRoute requireAuth={false}><Login /></AuthRoute></SuspenseWrapper>,
   },
   {
     path: 'register',
-    element: (
-      <PublicRoute>
-        <SuspenseWrapper><Register /></SuspenseWrapper>
-      </PublicRoute>
-    ),
+    element: <SuspenseWrapper><AuthRoute requireAuth={false}><Register /></AuthRoute></SuspenseWrapper>,
   },
   {
-    path: '',
-    element: (
-      <ProtectedRoute>
-        <Layout />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        index: true,
-        element: <SuspenseWrapper><Dashboard /></SuspenseWrapper>,
-      },
-      {
-        path: 'hospitals',
-        element: <SuspenseWrapper><Hospitals /></SuspenseWrapper>,
-      },
-      {
-        path: 'emergencies',
-        element: <SuspenseWrapper><Emergencies /></SuspenseWrapper>,
-      },
-      {
-        path: 'patients',
-        element: <SuspenseWrapper><Patients /></SuspenseWrapper>,
-      },
-      {
-        path: 'staff',
-        element: <SuspenseWrapper><Staff /></SuspenseWrapper>,
-      },
-      {
-        path: 'analytics',
-        element: <SuspenseWrapper><Analytics /></SuspenseWrapper>,
-      },
-      {
-        path: 'map',
-        element: <SuspenseWrapper><Map /></SuspenseWrapper>,
-      },
-      {
-        path: 'monitoring',
-        element: <SuspenseWrapper><Monitoring /></SuspenseWrapper>,
-      },
-      {
-        path: 'support',
-        element: <SuspenseWrapper><Support /></SuspenseWrapper>,
-      },
-      {
-        path: 'settings',
-        element: <SuspenseWrapper><Settings /></SuspenseWrapper>,
-      },
-    ],
+    index: true,
+    element: <SuspenseWrapper><AuthRoute><Dashboard /></AuthRoute></SuspenseWrapper>,
   },
-  // Catch-all route - redirect to login if not authenticated, or to dashboard if authenticated
   {
-    path: '*',
-    element: <Navigate to="/" replace />,
+    path: 'hospitals',
+    element: <SuspenseWrapper><AuthRoute><Hospitals /></AuthRoute></SuspenseWrapper>,
+  },
+  {
+    path: 'emergencies',
+    element: <SuspenseWrapper><AuthRoute><Emergencies /></AuthRoute></SuspenseWrapper>,
+  },
+  {
+    path: 'patients',
+    element: <SuspenseWrapper><AuthRoute><Patients /></AuthRoute></SuspenseWrapper>,
+  },
+  {
+    path: 'staff',
+    element: <SuspenseWrapper><AuthRoute><Staff /></AuthRoute></SuspenseWrapper>,
+  },
+  {
+    path: 'analytics',
+    element: <SuspenseWrapper><AuthRoute><Analytics /></AuthRoute></SuspenseWrapper>,
+  },
+  {
+    path: 'map',
+    element: <SuspenseWrapper><AuthRoute><Map /></AuthRoute></SuspenseWrapper>,
+  },
+  {
+    path: 'monitoring',
+    element: <SuspenseWrapper><AuthRoute><Monitoring /></AuthRoute></SuspenseWrapper>,
+  },
+  {
+    path: 'support',
+    element: <SuspenseWrapper><AuthRoute><Support /></AuthRoute></SuspenseWrapper>,
+  },
+  {
+    path: 'settings',
+    element: <SuspenseWrapper><AuthRoute><Settings /></AuthRoute></SuspenseWrapper>,
   },
 ];
 
-// Export routes separately to fix Fast Refresh issues
-export { routes }; 
+export { routes };

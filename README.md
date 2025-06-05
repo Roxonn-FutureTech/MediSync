@@ -12,16 +12,45 @@ MediSync is a comprehensive Emergency Medical Services Portal that helps coordin
 - Interactive map visualization
 - PWA support for mobile access
 
+## Project Structure
+
+```
+MediSync/
+├── frontend/                 # React frontend application
+│   ├── src/
+│   │   ├── assets/         # Static assets
+│   │   ├── components/     # Reusable components
+│   │   ├── context/        # React context providers
+│   │   ├── pages/         # Page components
+│   │   ├── routes/        # Route definitions
+│   │   └── styles/        # Global styles
+│   ├── public/            # Public assets
+│   └── vite.config.ts     # Vite configuration
+├── src/                    # Backend Python application
+│   └── api/
+│       ├── config/        # Configuration modules
+│       ├── models/        # Database models
+│       ├── routes/        # API routes
+│       ├── middleware/    # Custom middleware
+│       └── utils/         # Utility functions
+├── tests/                 # Test suites
+├── docs/                  # Documentation
+├── scripts/               # Utility scripts
+├── migrations/            # Database migrations
+├── instance/             # Instance-specific files
+├── logs/                 # Application logs
+└── certs/                # SSL certificates
+```
+
 ## Tech Stack
 
 ### Backend
 - Python 3.8+
 - Flask
 - SQLAlchemy
-- Flask-Admin
-- Flask-Login
-- Flask-Limiter
-- Flask-Caching
+- PostgreSQL
+- Redis
+- Gunicorn
 
 ### Frontend
 - React 18
@@ -34,76 +63,92 @@ MediSync is a comprehensive Emergency Medical Services Portal that helps coordin
 ## Getting Started
 
 ### Prerequisites
-- Python 3.8 or higher
-- Node.js 16 or higher
+- Docker and Docker Compose
+- Python 3.8+
+- Node.js 18+
 - npm or yarn
 
-### Backend Setup
+### Development Setup
 
-1. Create a virtual environment:
+1. Clone the repository:
 ```bash
+git clone https://github.com/yourusername/medisync.git
+cd medisync
+```
+
+2. Create and configure environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+3. Start the development environment:
+```bash
+# Using Docker
+docker-compose up -d
+
+# Without Docker - Backend
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-2. Install dependencies:
-```bash
 pip install -r requirements.txt
-```
-
-3. Initialize the database:
-```bash
-python init_db.py
-```
-
-4. Start the backend server:
-```bash
+flask db upgrade
 flask run
-```
 
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-```bash
+# Without Docker - Frontend
 cd frontend
-```
-
-2. Install dependencies:
-```bash
 npm install
-# or
-yarn install
-```
-
-3. Start the development server:
-```bash
 npm run dev
-# or
-yarn dev
 ```
 
-## Environment Variables
+### Production Deployment
 
-Create a `.env` file in the root directory with the following variables:
-
-```env
-FLASK_ENV=development
-SECRET_KEY=your-secret-key
-DATABASE_URI=sqlite:///./instance/emergency_portal.db
+1. Build and start the containers:
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
-## API Documentation
+2. Initialize the database:
+```bash
+docker-compose exec backend flask db upgrade
+```
 
-API documentation is available at `/docs` when running the backend server.
+## Configuration
+
+The application uses a hierarchical configuration system:
+
+- `Config`: Base configuration
+- `DevelopmentConfig`: Development settings
+- `TestingConfig`: Testing settings
+- `ProductionConfig`: Production settings
+
+Configuration is loaded based on the `FLASK_ENV` environment variable.
+
+## Testing
+
+```bash
+# Backend tests
+pytest
+
+# Frontend tests
+cd frontend && npm test
+```
+
+## Logging
+
+Logs are stored in the `logs` directory:
+- `app.log`: Application logs
+- `access.log`: HTTP access logs
+- `error.log`: Application error logs
+- `security.log`: Security-related events
 
 ## Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Security
 
 For security concerns, please email security@medisync.com
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
