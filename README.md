@@ -1,6 +1,6 @@
 # MediSync - Emergency Medical Response System
 
-MediSync is a comprehensive emergency medical response and hospital coordination system designed to streamline emergency response operations and improve patient care outcomes.
+MediSync is a comprehensive emergency medical response and hospital coordination system designed to streamline emergency response operations and improve patient care outcomes. 
 
 ## Project Overview
 
