@@ -10,7 +10,20 @@ http://localhost:5000
 
 ## Rate Limiting
 - Default limits: 200 requests per day, 50 requests per hour
-- Specific endpoints may have additional rate limits
+- Some endpoints have custom limits (see table below)
+
+### Endpoint-Specific Rate Limits
+
+| Endpoint | Method | Limit |
+|---------|--------|--------|
+| /api/hospitals | POST | 10 requests per minute |
+| /api/hospitals | GET | 30 requests per minute |
+| /api/hospitals/{id} | GET | 30 requests per minute |
+| /api/hospitals/{id} | PUT | 10 requests per minute |
+| /api/hospitals/{id} | DELETE | 10 requests per minute |
+| /health | GET | Cached for 60 seconds |
+| /docs | GET | Cached for 300 seconds |
+
 
 ## Endpoints
 
@@ -129,6 +142,14 @@ Deletes a hospital.
 
 **Response**
 - Status Code: 204 No Content
+
+### API Documentation
+```
+GET /docs
+```
+Returns the raw markdown content of the API documentation (API.md).  
+This response is cached for **300 seconds**.
+
 
 ## Error Responses
 
