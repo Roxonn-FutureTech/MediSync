@@ -1,52 +1,99 @@
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
+import importlib
+import os
+import tempfile
+import unittest
+from pathlib import Path
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hospital.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+import src.api.app as app_module
 
-db = SQLAlchemy(app)
 
-class Hospital(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    address = db.Column(db.String(200), nullable=False)
-    phone = db.Column(db.String(20), nullable=False)
-    capacity = db.Column(db.Integer, nullable=False)
+class MediSyncApiTests(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        database_path = Path(self.temp_dir.name) / "test_emergency_portal.db"
+        self.original_database_uri = os.environ.get("DATABASE_URI")
+        os.environ["DATABASE_URI"] = f"sqlite:///{database_path.as_posix()}"
 
-@app.route('/api/hospitals', methods=['POST'])
-def register_hospital():
-    data = request.get_json()
+        self.app_module = importlib.reload(app_module)
+        self.app = self.app_module.app
+        self.cache = self.app_module.cache
+        self.db = self.app_module.db
+        self.limiter = self.app_module.limiter
+        self.resolve_log_level = self.app_module.resolve_log_level
+        self.should_enable_debug = self.app_module.should_enable_debug
 
-    if not data:
-        return jsonify({'error': 'Missing JSON data'}), 400
-
-    # Validate required fields
-    required_fields = ['name', 'address', 'phone', 'capacity']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({'error': f'Missing field: {field}'}), 400
-
-    try:
-        hospital = Hospital(
-            name=data['name'],
-            address=data['address'],
-            phone=data['phone'],
-            capacity=data['capacity']
+        self.app.config.update(
+            TESTING=True,
+            RATELIMIT_ENABLED=False,
+            CACHE_TYPE="NullCache",
         )
-        db.session.add(hospital)
-        db.session.commit()
+        self.cache.init_app(self.app)
+        self.limiter.enabled = False
+        self.client = self.app.test_client()
 
-        return jsonify({
-            'id': hospital.id,
-            'name': hospital.name,
-            'address': hospital.address,
-            'phone': hospital.phone,
-            'capacity': hospital.capacity
-        }), 201
+        with self.app.app_context():
+            self.cache.clear()
+            self.db.drop_all()
+            self.db.create_all()
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    def tearDown(self):
+        with self.app.app_context():
+            self.db.session.remove()
+            self.db.drop_all()
+            self.cache.clear()
+            for engine in self.db.engines.values():
+                engine.dispose()
 
-if __name__ == '__main__':
-    app.run(debug=True)
+        if self.original_database_uri is None:
+            os.environ.pop("DATABASE_URI", None)
+        else:
+            os.environ["DATABASE_URI"] = self.original_database_uri
+
+        importlib.reload(app_module)
+        self.temp_dir.cleanup()
+
+    def test_health_check(self):
+        response = self.client.get("/health")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"status": "OK"})
+
+    def test_register_and_list_hospital(self):
+        payload = {
+            "name": "General Hospital",
+            "address": "123 Main St",
+            "phone": "+12345678901",
+            "capacity": 100,
+        }
+
+        created = self.client.post("/api/hospitals", json=payload)
+        listed = self.client.get("/api/hospitals")
+
+        self.assertEqual(created.status_code, 201)
+        self.assertEqual(created.get_json()["name"], payload["name"])
+        self.assertEqual(listed.status_code, 200)
+        self.assertEqual(len(listed.get_json()), 1)
+
+    def test_validation_errors_return_json(self):
+        response = self.client.post("/api/hospitals", json={"name": ""})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "Validation Error")
+
+    def test_missing_hospital_returns_json_404(self):
+        response = self.client.get("/api/hospitals/999")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.get_json()["error"], "Not Found")
+
+    def test_invalid_log_level_falls_back_to_info(self):
+        self.assertEqual(self.resolve_log_level("not-a-level"), 20)
+
+    def test_debug_flag_requires_explicit_truthy_value(self):
+        self.assertFalse(self.should_enable_debug(None))
+        self.assertFalse(self.should_enable_debug("false"))
+        self.assertTrue(self.should_enable_debug("true"))
+
+
+if __name__ == "__main__":
+    unittest.main()

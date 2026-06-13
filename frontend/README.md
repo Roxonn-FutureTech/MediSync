@@ -183,3 +183,7 @@ Create a `.env` file in the root directory with the following variables:
 ```env
 VITE_API_URL=your_api_url
 ```
+
+## Architecture Reference
+
+For a route-by-route and provider-level explanation of the frontend, see [../docs/frontend_architecture.md](../docs/frontend_architecture.md).
