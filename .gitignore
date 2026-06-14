@@ -18,6 +18,13 @@ Thumbs.db
 # Logs
 *.log
 
+# Local SQLite databases
+instance/
+src/api/instance/
+*.db
+*.sqlite
+*.sqlite3
+
 # Dependency directories
 node_modules/
 

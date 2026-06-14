@@ -43,12 +43,12 @@ The project is structured into two main components:
 - Responsive design for all devices
 - See [Frontend README](frontend/README.md) for details
 
-### Backend (/backend)
-- RESTful API service
-- Real-time data processing
-- Secure authentication and authorization
-- Scalable microservices architecture
-- Database management and optimization
+### Backend (`src/api`)
+- Flask REST API service
+- SQLAlchemy models backed by a local SQLite database
+- Marshmallow request/response validation
+- JSON error handlers and rate limiting
+- API documentation served from `docs/API.md`
 
 ## Technology Stack
 
@@ -59,12 +59,14 @@ The project is structured into two main components:
 - Leaflet for mapping
 - PWA capabilities
 
-### Backend (Planned)
-- Node.js/Express.js
-- PostgreSQL
-- Redis for caching
-- WebSocket for real-time updates
-- Docker containerization
+### Backend
+- Python 3
+- Flask
+- Flask-SQLAlchemy
+- SQLite
+- Marshmallow
+- Flask-Limiter
+- Flask-Caching
 
 ## Getting Started
 
@@ -81,11 +83,22 @@ The project is structured into two main components:
    npm run dev
    ```
 
-3. Set up the backend (coming soon):
+3. Set up the backend:
    ```bash
-   cd backend
-   npm install
-   npm run dev
+   python -m venv venv
+   venv\Scripts\activate  # Windows
+   # source venv/bin/activate  # macOS/Linux
+   pip install -r requirements.txt
+   python -m src.api.app
+   ```
+
+   The development database is created automatically in Flask's `instance/`
+   folder as `emergency_portal.db`. Override it with `DATABASE_URI` when a
+   different database location is needed.
+
+4. Run backend tests:
+   ```bash
+   python -m unittest discover -s tests
    ```
 
 ## Development Roadmap
@@ -98,8 +111,8 @@ The project is structured into two main components:
 - [ ] Testing and optimization
 
 ### Phase 2 - Backend Development
-- [ ] API development
-- [ ] Database setup
+- [x] API foundation
+- [x] Local SQLite setup
 - [ ] Authentication system
 - [ ] Real-time communication
 - [ ] Testing and documentation
