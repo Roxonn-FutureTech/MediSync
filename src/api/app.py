@@ -1,11 +1,11 @@
 from flask import Flask, jsonify, request, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_caching import Cache
 from datetime import datetime, timezone
 from marshmallow import ValidationError
 from src.api.schemas import HospitalSchema, ErrorSchema
+from src.api.extensions import db
 import os
 
 # Initialize Flask app
@@ -17,7 +17,6 @@ app.config['CACHE_DEFAULT_TIMEOUT'] = 300  # 5 minutes
 app.config['DOCS_PATH'] = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'docs')
 
 # Initialize extensions
-db = SQLAlchemy()
 db.init_app(app)
 limiter = Limiter(
     app=app,
@@ -44,6 +43,16 @@ class Hospital(db.Model):
             'capacity': self.capacity,
             'created_at': self.created_at.isoformat()
         }
+
+# Import database models so db.create_all() registers all entities
+from src.api.models import (
+    Patient,
+    MedicalHistory,
+    EmergencyContact,
+    Appointment,
+    Prescription,
+    AuditTrail,
+)
 
 # Error handlers
 @app.errorhandler(ValidationError)
@@ -87,7 +96,7 @@ def index():
                 "delete": "/api/hospitals/{id}"
             }
         },
-        "documentation": "/docs"  # Future endpoint for API documentation
+        "documentation": "/docs"
     }), 200
 
 @app.route('/health')
