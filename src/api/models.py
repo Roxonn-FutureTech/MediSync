@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import enum
-from src.api.app import db
+from sqlalchemy import event
+from src.api.extensions import db
 
 
 class AppointmentStatus(enum.Enum):
@@ -20,6 +21,8 @@ class Patient(db.Model):
     phone = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=True)
     blood_type = db.Column(db.String(10), nullable=True)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(
         db.DateTime, default=lambda: datetime.now(timezone.utc)
     )
@@ -50,6 +53,10 @@ class Patient(db.Model):
             "phone": self.phone,
             "email": self.email,
             "blood_type": self.blood_type,
+            "is_deleted": self.is_deleted,
+            "deleted_at": (
+                self.deleted_at.isoformat() if self.deleted_at else None
+            ),
             "created_at": (
                 self.created_at.isoformat() if self.created_at else None
             ),
@@ -67,6 +74,8 @@ class MedicalHistory(db.Model):
     diagnosis_date = db.Column(db.Date, nullable=True)
     allergies = db.Column(db.Text, nullable=True)
     notes = db.Column(db.Text, nullable=True)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
     recorded_at = db.Column(
         db.DateTime, default=lambda: datetime.now(timezone.utc)
     )
@@ -81,6 +90,10 @@ class MedicalHistory(db.Model):
             ),
             "allergies": self.allergies,
             "notes": self.notes,
+            "is_deleted": self.is_deleted,
+            "deleted_at": (
+                self.deleted_at.isoformat() if self.deleted_at else None
+            ),
             "recorded_at": (
                 self.recorded_at.isoformat() if self.recorded_at else None
             ),
@@ -98,6 +111,8 @@ class EmergencyContact(db.Model):
     relationship = db.Column(db.String(50), nullable=False)
     phone_number = db.Column(db.String(20), nullable=False)
     is_primary = db.Column(db.Boolean, default=False)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
 
     def to_dict(self):
         return {
@@ -107,6 +122,10 @@ class EmergencyContact(db.Model):
             "relationship": self.relationship,
             "phone_number": self.phone_number,
             "is_primary": self.is_primary,
+            "is_deleted": self.is_deleted,
+            "deleted_at": (
+                self.deleted_at.isoformat() if self.deleted_at else None
+            ),
         }
 
 
@@ -125,6 +144,8 @@ class Appointment(db.Model):
         nullable=False,
     )
     reason = db.Column(db.String(255), nullable=True)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(
         db.DateTime, default=lambda: datetime.now(timezone.utc)
     )
@@ -139,6 +160,10 @@ class Appointment(db.Model):
             ),
             "status": self.status.value,
             "reason": self.reason,
+            "is_deleted": self.is_deleted,
+            "deleted_at": (
+                self.deleted_at.isoformat() if self.deleted_at else None
+            ),
             "created_at": (
                 self.created_at.isoformat() if self.created_at else None
             ),
@@ -158,6 +183,8 @@ class Prescription(db.Model):
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=True)
     instructions = db.Column(db.Text, nullable=True)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
 
     def to_dict(self):
         return {
@@ -171,6 +198,10 @@ class Prescription(db.Model):
             ),
             "end_date": self.end_date.isoformat() if self.end_date else None,
             "instructions": self.instructions,
+            "is_deleted": self.is_deleted,
+            "deleted_at": (
+                self.deleted_at.isoformat() if self.deleted_at else None
+            ),
         }
 
 
@@ -199,3 +230,14 @@ class AuditTrail(db.Model):
             "ip_address": self.ip_address,
             "timestamp": self.timestamp.isoformat(),
         }
+
+
+# Enforce immutable append-only behavior for AuditTrail
+@event.listens_for(AuditTrail, "before_update")
+def prevent_audit_update(mapper, connection, target):
+    raise ValueError("AuditTrail records are immutable and cannot be updated.")
+
+
+@event.listens_for(AuditTrail, "before_delete")
+def prevent_audit_delete(mapper, connection, target):
+    raise ValueError("AuditTrail records are immutable and cannot be deleted.")
